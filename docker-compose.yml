@@ -1,0 +1,175 @@
+# ONEPASS — the local full stack: the app, Postgres 16 and Redis 7.
+#
+# postgres:16 and redis:7 are the same images .github/workflows/ci.yml runs its
+# service containers on, deliberately: the stack you debug on a laptop is the one
+# the tests ran against.
+#
+# ── Secrets ──────────────────────────────────────────────────
+# Everything sensitive comes from a .env file beside this one. It is NOT
+# committed — .gitignore excludes .env and .env.*, and .github/workflows/
+# security.yml fails the build if one is ever added. Copy .env.example, fill it
+# in, and keep it local:
+#
+#   cp .env.example .env
+#   # then follow the "Generate the secrets" block in .env.example
+#
+# ── First run ────────────────────────────────────────────────
+# The order below is scripts/bootstrap-dev.sh's order, which is also CI's:
+# postgres → redis → databases → schema → isolation SQL → seed → sample window.
+#
+#   1. docker compose up -d postgres redis
+#   2. docker compose --profile tools run --rm tools npm run db:push -- --force
+#   3. docker compose exec -T postgres \
+#        psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < apps/web/src/db/isolation.sql
+#   4. docker compose --profile tools run --rm tools npm run db:seed
+#   5. docker compose --profile tools run --rm tools npm run db:refresh
+#   6. docker compose up -d app
+#
+# Step 3 runs psql inside the postgres container, so nothing needs a Postgres
+# client installed locally. Step 5 re-anchors the sample data's forward-looking rows
+# onto today and runs the sweeps; see docs/operations.md.
+#
+# The database created by step 1 is POSTGRES_DB. If you also want the test
+# database the suite uses:
+#
+#   docker compose exec -T postgres createdb -U "$POSTGRES_USER" onepass_test
+
+name: onepass
+
+services:
+  # ── Postgres ───────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onepass}
+      POSTGRES_DB: ${POSTGRES_DB:-onepass}
+      # No default, on purpose: an unset password here should stop the stack, not
+      # start a database with a guessable one.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env — see .env.example}
+    volumes:
+      # A named volume, so `docker compose down` does not take the database with
+      # it. `docker compose down -v` does, which is the only way to drop it.
+      - onepass-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      # $$ escapes compose's own interpolation so the shell inside the container
+      # expands these, not the compose file.
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # ── Redis ──────────────────────────────────────────────────
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    # Rate-limit and realtime state is not worth an fsync per write, but losing
+    # all of it on every restart makes local behaviour differ from production for
+    # no reason. A periodic snapshot is the middle.
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    volumes:
+      - onepass-redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  # ── The application ────────────────────────────────────────
+  #
+  # Built from the Dockerfile's `dev` target, and that is a deliberate choice
+  # rather than a convenience. The standalone server produced by `next build`
+  # sets NODE_ENV=production on its first line unconditionally, so the runtime
+  # image is always judged by the production guard in apps/web/src/lib/env.ts:
+  # it refuses an http:// APP_URL, the SANDBOX payment provider and CONSOLE
+  # email/SMS. Those refusals are the feature. A local stack cannot honestly
+  # satisfy them, so it runs the dev server instead.
+  #
+  # To exercise the image that actually deploys, use the `app-production`
+  # service below with a fully configured environment.
+  app:
+    build:
+      context: .
+      target: dev
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      # The app does not start until Postgres is accepting connections and Redis
+      # answers PING — not merely until their containers exist.
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # Read-only, and only the two directories that hold source. Mounting the
+      # whole repository would shadow the container's node_modules with the
+      # host's, which on a musl base means the wrong argon2 binary.
+      - ./apps/web/src:/repo/apps/web/src:ro
+      - ./apps/web/public:/repo/apps/web/public:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      # A cold dev server compiles the first route it is asked for.
+      start_period: 60s
+
+  # ── The production image ───────────────────────────────────
+  #
+  #   docker compose --profile production-image up -d --build app-production
+  #
+  # This runs the image that deploys. It will refuse to serve a request unless
+  # the environment satisfies every production rule in src/lib/env.ts: an https
+  # APP_URL, REDIS_URL, HASH_PEPPER, a real payment provider with all three
+  # Razorpay keys, and real email and SMS providers. With anything missing,
+  # /api/health returns 500 and the container is marked unhealthy — which is the
+  # correct outcome, and the reason this is a separate profile.
+  app-production:
+    profiles: ["production-image"]
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PROD_PORT:-3001}:3000"
+    # The HEALTHCHECK in the image already probes /api/health; nothing to add.
+
+  # ── Schema, seed and maintenance ───────────────────────────
+  #
+  # A one-off image, not a running service — hence the profile, which keeps it
+  # out of `docker compose up`. drizzle-kit and tsx are dev dependencies and are
+  # absent from the runtime image on purpose: a command that rewrites a schema
+  # should be run deliberately, from a container built for it.
+  #
+  #   docker compose --profile tools run --rm tools npm run db:push -- --force
+  #   docker compose --profile tools run --rm tools npm run db:seed
+  #   docker compose --profile tools run --rm tools npm run db:refresh
+  #   docker compose --profile tools run --rm tools npm run db:migrate
+  tools:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: tools
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /repo/apps/web
+
+volumes:
+  onepass-postgres-data:
+  onepass-redis-data:

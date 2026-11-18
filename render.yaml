@@ -1,0 +1,142 @@
+# ONEPASS — a public deployment, as a Render Blueprint.
+#
+# Point Render at this repository (New → Blueprint) and it provisions all three
+# pieces together: the app from the Dockerfile's `runtime` target, a managed
+# Postgres 16, and a managed Redis. Render then hands you an https URL.
+#
+# ── What Render fills in, and what you fill in ───────────────
+#
+# Generated or wired automatically: DATABASE_URL, REDIS_URL, APP_URL,
+# ENCRYPTION_KEY, HASH_PEPPER. You never see or type those, and the encryption
+# key is generated inside Render rather than by anyone's laptop.
+#
+# You supply six values, prompted at deploy time (`sync: false` below). They are
+# provider credentials, and there is no honest way around them:
+#
+#   RAZORPAY_KEY_ID · RAZORPAY_KEY_SECRET · RAZORPAY_WEBHOOK_SECRET
+#   RESEND_API_KEY · MSG91_AUTH_KEY · MSG91_SENDER_ID
+#
+# The reason is a guard, not an oversight. apps/web/src/lib/env.ts refuses to
+# start in production on the sandbox payment provider or on console email and
+# SMS, because both of those look like a working system while silently taking no
+# money and printing sign-in codes to a log file where nobody reads them. The
+# refusal is asserted by a test. docs/integrations.md says where to get each
+# credential.
+#
+# ── After the first deploy ───────────────────────────────────
+#
+# The schema, the row-level security policies and the sample data are not
+# applied automatically, because a blueprint that seeds a production database
+# without being asked is a blueprint that will one day do it to a real one. Run
+# them once from Render's shell on the web service:
+#
+#   npm run db:push -- --force
+#   psql "$DATABASE_URL" -f src/db/isolation.sql
+#   npm run db:seed        # sample data — skip this for a real deployment
+#
+# `db:push` drops any policy it does not know about, so isolation.sql runs after
+# it, every time. See docs/operations.md.
+#
+# Finally, point Razorpay's webhook at https://<your-render-url>/api/webhooks/payments
+# and subscribe it to payment.captured and payment.failed.
+
+databases:
+  - name: onepass-postgres
+    databaseName: onepass
+    user: onepass
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+
+services:
+  # ── Redis ──────────────────────────────────────────────────
+  # Not optional in production, and the app says so at boot. Rate limits and the
+  # realtime fan-out are both wrong when they are per-instance: two containers
+  # with in-memory limiters allow twice the attempts, and a door console
+  # connected to one instance never sees an admission that happened on the other.
+  - type: keyvalue
+    name: onepass-redis
+    plan: free
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+  # ── The application ────────────────────────────────────────
+  - type: web
+    name: onepass
+    runtime: docker
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # The production target. The Dockerfile's `dev` target exists for
+    # docker-compose on a laptop and must never be what deploys.
+    dockerTarget: runtime
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render's own https hostname, so the CSRF origin check and the Secure
+      # cookie flag both line up with the URL people actually visit.
+      - key: APP_URL
+        fromService:
+          type: web
+          name: onepass
+          envVarKey: RENDER_EXTERNAL_URL
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onepass-postgres
+          property: connectionString
+      - key: DIRECT_DATABASE_URL
+        fromDatabase:
+          name: onepass-postgres
+          property: connectionString
+
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: onepass-redis
+          property: connectionString
+
+      # Generated inside Render and never displayed. Back this up before you
+      # rotate it: it seals pass secrets, webhook signing secrets and credential
+      # claims, and anything already sealed stops opening without it.
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY_ID
+        value: v1
+
+      # Salts the one-way hashes of IP addresses in the audit trail.
+      - key: HASH_PEPPER
+        generateValue: true
+
+      - key: SESSION_COOKIE_NAME
+        value: onepass_session
+      - key: RATE_LIMIT_DISABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+
+      # ── yours to supply ──────────────────────────────────
+      - key: PAYMENT_PROVIDER
+        value: RAZORPAY
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      - key: EMAIL_PROVIDER
+        value: RESEND
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: ONEPASS <no-reply@onepass.in>
+
+      - key: SMS_PROVIDER
+        value: MSG91
+      - key: MSG91_AUTH_KEY
+        sync: false
+      - key: MSG91_SENDER_ID
+        sync: false

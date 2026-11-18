@@ -1,0 +1,23 @@
+{
+  "name": "onepass-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @onepass/web",
+    "build": "npm run build -w @onepass/pass && npm run build -w @onepass/web",
+    "start": "npm run start -w @onepass/web",
+    "lint": "npm run lint -w @onepass/web",
+    "typecheck": "npm run typecheck -w @onepass/pass && npm run typecheck -w @onepass/web",
+    "test": "npm run test -w @onepass/pass && npm run test -w @onepass/web",
+    "test:e2e": "npm run test:e2e -w @onepass/web",
+    "db:migrate": "npm run db:migrate -w @onepass/web",
+    "db:seed": "npm run db:seed -w @onepass/web"
+  }
+}

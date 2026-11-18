@@ -1,0 +1,160 @@
+/*
+ * Effects: light, motion and the few surfaces that are allowed to be special.
+ *
+ * Every effect here has to answer one question — does it tell the person
+ * something? A view transition says "this is the same thing, opened". The
+ * bead in the dock says "you moved here". Foil on the pass says "this is the
+ * real one". Ambient light says "this is a room, not a spreadsheet" and so is
+ * kept out of dense consoles. Anything that answered no was removed.
+ *
+ * PERFORMANCE TIERS. `data-tier` on <html> is set once on load by
+ * <PerformanceTier> from what the device can afford:
+ *   full      — a capable desktop: pointer-lit objects, ambient drift, blur.
+ *   standard  — the default and the no-JavaScript state: transforms and
+ *               opacity only, static light.
+ *   lite      — a constrained device, data saver, or reduced motion: no blur,
+ *               no grain, no continuous animation, no foil.
+ * The product looks like itself in all three; only the expensive extras go.
+ */
+
+/* ═══ ambient light ════════════════════════════════════════ */
+.ambient {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  opacity: var(--ambient-strength);
+  background:
+    radial-gradient(56vw 42vw at 8% -10%, var(--light-1), transparent 64%),
+    radial-gradient(48vw 40vw at 96% 0%, var(--light-2), transparent 62%);
+}
+:root[data-tier='full'] .ambient-drift { animation: ambient-drift 60s var(--ease-soft) infinite alternate; }
+@keyframes ambient-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, -2%, 0) scale(1.06); } }
+.ambient-grid { display: none; }
+.glow { position: absolute; border-radius: var(--r-full); pointer-events: none; filter: blur(64px); opacity: 0.5; background: var(--light-1); }
+:root[data-tier='lite'] .glow { display: none; }
+
+/* ═══ the immersive field ══════════════════════════════════
+   Night ink with engraved waves. For the landing hero, the travel header and
+   the verification verdict — places where a product story is being told.
+   Theme-independent, like the objects: it is a stage, not a page. */
+.immersive {
+  --ink: #e8efec; --ink-2: #c3d0cb; --muted: #9fb0aa; --line: rgba(255, 255, 255, 0.12); --rule: rgba(255, 255, 255, 0.1);
+  --surface: #13201d; --raised: #182724; --sunken: #0b1412; --accent: var(--jade-300); --accent-ink: #03170f;
+  --accent-soft: #10302a; --accent-line: #22594a; --accent-strong: #6ddcb2; --line-2: rgba(255, 255, 255, 0.18);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(19, 32, 29, 0.66); --glass-line: rgba(255, 255, 255, 0.1);
+  --value: var(--marigold-300); --value-soft: #2a2112; --value-fill: var(--marigold-300); --value-ink: #1a1203;
+  --info: var(--indigo-300); --info-soft: #182238; --ok: #5cc486; --ok-soft: #11291c; --warn: #e0ae4a; --warn-soft: #2a2213;
+  --bad: var(--vermilion-300); --bad-soft: #311a16; --bad-ink: #140605;
+  color-scheme: dark;
+  position: relative; isolation: isolate; overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(70% 90% at 85% 10%, rgba(18, 128, 96, 0.35), transparent 60%),
+    radial-gradient(60% 80% at 5% 100%, rgba(226, 163, 54, 0.12), transparent 60%),
+    linear-gradient(180deg, #0b1513, #08110f);
+}
+.immersive > .guilloche-field { inset: 0; --g-ink: #7fe0b8; --g-opacity: 0.1; }
+.immersive a:not(.btn) { color: var(--accent); }
+
+/* ═══ glass ════════════════════════════════════════════════ */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  box-shadow: inset 0 0 0 1px var(--glass-line), var(--e-3);
+  border-radius: var(--r-xl);
+}
+.glass-strong { background: var(--glass-bg-strong); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass, .glass-strong, .appbar, .topbar, .dock, .console-bar { background: var(--surface); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .glass-strong, .appbar, .topbar, .dock, .console-bar, .palette-backdrop {
+    background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+:root[data-tier='lite'] .appbar, :root[data-tier='lite'] .topbar, :root[data-tier='lite'] .console-bar {
+  -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface);
+}
+.sheen { position: relative; overflow: hidden; }
+.sheen::before {
+  content: ''; position: absolute; inset-inline: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 55%, transparent), transparent);
+}
+
+/* ═══ interaction ══════════════════════════════════════════ */
+.lift { transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out); }
+.lift:hover { transform: translateY(-2px); box-shadow: var(--edge-light), var(--e-3); }
+.lift:active { transform: translateY(0); transition-duration: var(--t-instant); }
+@media (hover: none) { .lift:hover { transform: none; box-shadow: var(--edge-light), var(--e-0); } }
+.card-link { position: relative; }
+.card-link a.stretch::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.card-link:has(a.stretch:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card-link a.stretch:focus-visible { outline: none; }
+.fill-height { height: 100%; }
+.push-end { margin-top: auto; }
+
+/* ═══ entrances ════════════════════════════════════════════ */
+@keyframes rise { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes settle { from { transform: translate3d(0, 14px, 0); } to { transform: none; } }
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+/* An object arriving: it lands, with a little mass. */
+@keyframes land { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.97); } to { opacity: 1; transform: none; } }
+
+.rise { animation: rise var(--t-slow) var(--ease-out) both; }
+.fade-in { animation: fade var(--t-base) var(--ease-out) both; }
+.land { animation: land var(--t-object) var(--ease-spring) both; }
+.pulse-once { animation: pulse-ring 1.4s var(--ease-out) 1; }
+
+/* Scroll reveal that never hides: content is legible at every point of the
+   animation, so a print, a full-page capture or a reader that never scrolls
+   still gets all of it. */
+.reveal { opacity: 1; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% entry 45%; }
+  }
+}
+.stagger > * { animation: rise var(--t-slow) var(--ease-out) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(7) { animation-delay: 240ms; }
+.stagger > *:nth-child(n + 8) { animation-delay: 280ms; }
+
+/* ═══ view transitions ═════════════════════════════════════
+   Navigations made through <TransitionLink> (the dock, the topbar, and the
+   links that open an object) run inside document.startViewTransition. The page
+   crossfades with a short rise; anything carrying the same view-transition-name
+   on both pages — the pass, a ticket, the nav bead — travels between its two
+   positions instead. Browsers without the API navigate normally. */
+::view-transition-old(root) { animation: vt-out var(--t-fast) var(--ease-in) both; }
+::view-transition-new(root) { animation: vt-in var(--t-base) var(--ease-out) both; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } }
+::view-transition-group(*) { animation-duration: var(--t-object); animation-timing-function: var(--ease-spring); }
+::view-transition-group(nav-bead), ::view-transition-group(dock-bead) { animation-duration: var(--t-slow); }
+/* The bars do not move between pages, so they are captured separately and held
+   still while the content changes underneath. */
+.appbar { view-transition-name: appbar; }
+.dock { view-transition-name: dock; }
+::view-transition-group(appbar), ::view-transition-group(dock) { animation: none; }
+::view-transition-old(appbar), ::view-transition-old(dock) { display: none; }
+::view-transition-new(appbar), ::view-transition-new(dock) { animation: none; }
+
+/* ═══ reduced motion, and the lite tier ═══════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-drift, .dot-live::after { animation: none !important; }
+  .reveal, .rise, .fade-in, .land, .stagger > * { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .pulse-once { animation: none !important; }
+  .lift:hover, a.pass:hover, a.ticket:hover { transform: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+:root[data-tier='lite'] .stagger > *, :root[data-tier='lite'] .land, :root[data-tier='lite'] .rise { animation: none; }
+:root[data-tier='lite'] .dot-live::after { display: none; }

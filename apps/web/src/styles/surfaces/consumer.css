@@ -1,0 +1,148 @@
+/*
+ * Consumer surface: the compositions the app's own screens are laid out with.
+ *
+ * Built on the tokens and the class layer; nothing here redefines a shared
+ * class. Layout only — colour, type and material come from the system.
+ */
+
+/* ═══ home ═════════════════════════════════════════════════ */
+.home-head { display: flex; flex-direction: column; gap: 2px; }
+
+/* The pass and what is next, side by side where there is room. The pass keeps
+   its card proportions rather than stretching: an ID-1 card that is 900px wide
+   stops reading as something you could hold. */
+.home-lead { display: grid; gap: var(--s-5); align-items: start; }
+@media (min-width: 900px) {
+  .home-lead { grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: var(--s-6); }
+}
+.home-pass { display: flex; flex-direction: column; gap: var(--s-3); }
+.home-pass-hint { display: flex; align-items: center; gap: 8px; }
+@media (min-width: 900px) { .home-pass { position: sticky; top: 90px; } }
+
+/* First steps: a numbered list where the number becomes a tick. Not a progress
+   bar — four steps do not need a percentage, and a tick is unambiguous. */
+.first-steps { display: flex; flex-direction: column; gap: 2px; counter-reset: step; }
+.first-steps > li {
+  display: flex; gap: var(--s-3); align-items: flex-start;
+  padding: var(--s-4); border-radius: var(--r-l);
+  background: var(--surface); box-shadow: var(--edge-light), var(--ring);
+}
+.first-steps > li[data-done='true'] { background: var(--raised); box-shadow: var(--ring); }
+.first-steps > li[data-done='true'] .h4 { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
+.first-steps-mark {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.first-steps > li[data-done='true'] .first-steps-mark { background: var(--ok-soft); color: var(--ok); box-shadow: none; }
+
+/* ═══ quick actions ════════════════════════════════════════ */
+.qa { display: grid; gap: var(--s-2); grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+.qa-item {
+  position: relative; display: flex; flex-direction: column; gap: 6px;
+  min-height: 96px; padding: var(--s-4) var(--s-3);
+  border-radius: var(--r-l); background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+  color: var(--ink); text-decoration: none;
+  transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
+}
+.qa-item:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--ring-accent), var(--e-2); }
+.qa-item:active { transform: translateY(0); }
+@media (hover: none) { .qa-item:hover { transform: none; } }
+.qa-mark {
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: var(--r-s);
+  background: var(--accent-soft); color: var(--accent);
+}
+.qa-label { font-family: var(--font-display); font-weight: 650; font-size: 13.5px; line-height: 1.3; }
+.qa-sub { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.qa-chip { position: absolute; top: 8px; right: 8px; }
+
+/* ═══ the pass screen ══════════════════════════════════════ */
+.pass-screen .pass-open { max-width: 460px; }
+
+/* ═══ collections: wallet, tickets, receipts, warranties ═══ */
+/* A shelf of objects, not a table of rows: each item keeps its own shape and
+   the grid gives them room to be looked at. */
+.shelf { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.shelf-wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); }
+.shelf > li { min-width: 0; list-style: none; }
+
+/* A group of objects under one heading — "Tonight", "This week", "Kept". */
+.shelf-group { display: flex; flex-direction: column; gap: var(--s-3); }
+.shelf-group > h3 { font-family: var(--font-display); font-stretch: var(--w-condensed); font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+/* The filter rail above a collection: a segmented control and a search field
+   that stay on one line where there is room, and wrap where there is not. */
+.collection-bar { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+.collection-bar form { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
+.collection-bar .input, .collection-bar .select { min-height: 40px; width: auto; min-width: 150px; }
+
+/* ═══ detail pages ═════════════════════════════════════════ */
+/* An object at the top, its facts beneath, its actions last — the shape every
+   detail screen in the app shares. */
+/* `minmax(0, 1fr)` on the single-column case, not the default `auto`: an `auto`
+   track is at least as wide as its content's minimum, so one object with a wide
+   minimum — a boarding pass, whose stub alone asks for 120px — pushed the track
+   past the viewport and took the whole page with it. */
+.object-detail { display: grid; gap: var(--s-5); align-items: start; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) {
+  .object-detail { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--s-6); }
+}
+.object-detail-aside { display: flex; flex-direction: column; gap: var(--s-4); }
+@media (min-width: 900px) { .object-detail-aside { position: sticky; top: 90px; } }
+
+/* ═══ the wallet's collection ══════════════════════════════ */
+/* One tile per kind of thing held. The figure leads, because the question a
+   wallet answers first is "how many". */
+.holdings { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); }
+.holding {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--s-4); border-radius: var(--r-l);
+  background: var(--surface); box-shadow: var(--edge-light), var(--ring);
+  color: var(--ink); text-decoration: none;
+  transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
+}
+.holding:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--ring-accent), var(--e-2); }
+@media (hover: none) { .holding:hover { transform: none; } }
+.holding-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--r-s); background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; }
+.holding-count {
+  font-family: var(--font-display); font-stretch: var(--w-wide); font-weight: 720;
+  font-size: clamp(24px, 2vw + 16px, 32px); line-height: 1.05; font-variant-numeric: tabular-nums;
+}
+.holding-label { font-family: var(--font-display); font-weight: 620; font-size: 14px; }
+.holding-note { font-size: 12px; color: var(--muted); }
+
+/* ═══ the return stepper ═══════════════════════════════════ */
+/* Where a case sits in its state machine. These used to be injected by the page
+   as a string; they are part of the sheet now, like everything else. */
+.op-stepper { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.op-stepper li { display: inline-flex; align-items: center; gap: 6px; }
+/* The arrow is generated, so the markup stays one list item per state and a
+   screen reader reads the states rather than a row of punctuation. */
+.op-stepper li + li::before { content: '→'; color: var(--line-2); }
+.op-step {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--raised);
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  white-space: nowrap;
+}
+.op-step[data-done='true'] { color: var(--ok); background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 28%, transparent); }
+.op-step[data-current='true'] { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-line); }
+.op-step-mark {
+  width: 16px; height: 16px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  border: 1.5px solid currentColor; font-size: 10px; line-height: 1;
+}
+.op-step[data-current='true'] .op-step-mark { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.op-step-arrow { color: var(--line-2); flex: none; }
+.op-step-next { color: var(--muted); background: transparent; border-style: dashed; }
+
+/* ═══ signed figures ═══════════════════════════════════════ */
+/* A points movement, coloured by its direction. The sign is the data, not the
+   colour: it is written in the text too, so this survives being printed and
+   read by somebody who cannot tell the two apart. */
+.op-signed { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+.op-signed[data-sign='up'] { color: var(--ok); }
+.op-signed[data-sign='down'] { color: var(--bad); }

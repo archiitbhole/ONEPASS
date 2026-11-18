@@ -1,0 +1,990 @@
+<title>ONEPASS Build Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  /* Same tokens as the audit document — these are companion pieces and should
+     read as one set. Inherited from the app's own globals.css. */
+  :root {
+    --ground: #edf1ef; --surface: #ffffff; --raised: #f5f8f7; --sunken: #e4eae8;
+    --ink: #0b211e; --muted: #6f8480; --line: #d6dfdc; --line-strong: #b9c8c4;
+    --accent: #007253; --accent-soft: #e2f0eb; --accent-line: #a9cfc3;
+    --ok: #1e7a4c;  --ok-bg: #e1f1e7;
+    --warn: #8f6100; --warn-bg: #f8efda;
+    --bad: #a8352b;  --bad-bg: #f8e6e3;
+    --info: #2b6f86; --info-bg: #e0eef2;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #08120f; --surface: #101f1d; --raised: #162926; --sunken: #0c1917;
+      --ink: #dfeae6; --muted: #829992; --line: #223734; --line-strong: #31504b;
+      --accent: #43bd99; --accent-soft: #12312a; --accent-line: #265448;
+      --ok: #63c48d;  --ok-bg: #122c1f;
+      --warn: #dcaa46; --warn-bg: #2c2415;
+      --bad: #ef8578;  --bad-bg: #311a18;
+      --info: #7cbdd4; --info-bg: #12262d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #08120f; --surface: #101f1d; --raised: #162926; --sunken: #0c1917;
+    --ink: #dfeae6; --muted: #829992; --line: #223734; --line-strong: #31504b;
+    --accent: #43bd99; --accent-soft: #12312a; --accent-line: #265448;
+    --ok: #63c48d;  --ok-bg: #122c1f;
+    --warn: #dcaa46; --warn-bg: #2c2415;
+    --bad: #ef8578;  --bad-bg: #311a18;
+    --info: #7cbdd4; --info-bg: #12262d;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.62; -webkit-font-smoothing: antialiased; }
+  h1,h2,h3,h4,p,ul,ol,dl,dd,figure,table { margin: 0; }
+  ul, ol { padding-left: 0; list-style: none; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 24px; }
+  .prose { max-width: 68ch; }
+  .prose p + p { margin-top: 13px; }
+
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--line); padding-block: 44px 34px; }
+  .kicker { font-family: var(--mono); font-size: 11.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h1 { font-family: var(--display); font-weight: 800; font-size: clamp(32px,5vw,50px); line-height: 1.04; letter-spacing: -.03em; text-wrap: balance; margin-bottom: 16px; }
+  .standfirst { font-size: clamp(16px,2vw,18.5px); color: var(--muted); max-width: 60ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 0 26px; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .meta b { color: var(--ink); font-weight: 500; }
+
+  .toc { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--ground) 92%, transparent); backdrop-filter: saturate(1.5) blur(10px); border-bottom: 1px solid var(--line); }
+  .toc ol { display: flex; gap: 2px; overflow-x: auto; padding-block: 8px; }
+  .toc a { display: block; white-space: nowrap; padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; }
+  .toc a:hover { background: var(--sunken); color: var(--ink); }
+
+  section { padding-block: 50px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  .sec-head { display: flex; gap: 16px; align-items: baseline; margin-bottom: 8px; }
+  .sec-num { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); padding-top: 6px; flex: none; }
+  h2 { font-family: var(--display); font-weight: 700; font-size: clamp(22px,3.3vw,30px); line-height: 1.15; letter-spacing: -.022em; text-wrap: balance; }
+  h3 { font-family: var(--display); font-weight: 600; font-size: 17.5px; letter-spacing: -.012em; margin-top: 32px; margin-bottom: 11px; }
+  .sec-intro { color: var(--muted); margin-left: 28px; margin-bottom: 24px; max-width: 66ch; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .tile { background: var(--surface); padding: 17px 15px; }
+  .tile .n { font-family: var(--display); font-weight: 800; font-size: 27px; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { position: sticky; top: 0; background: var(--raised); text-align: left; vertical-align: bottom; font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); padding: 11px 13px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+  tbody td { padding: 12px 13px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--raised); }
+  td.k { font-weight: 600; min-width: 150px; }
+  code { font-family: var(--mono); font-size: 11.5px; background: var(--sunken); padding: 1.5px 5px; border-radius: 4px; white-space: nowrap; }
+
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 2.5px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .p-real { background: var(--ok-bg);   color: var(--ok); }
+  .p-sample { background: var(--warn-bg); color: var(--warn); }
+  .p-none { background: var(--bad-bg);  color: var(--bad); }
+  .p-part { background: var(--info-bg); color: var(--info); }
+
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 15px 18px; border-radius: 0 8px 8px 0; margin-top: 22px; font-size: 14px; line-height: 1.55; }
+  .note.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .note b { font-weight: 600; }
+
+  pre { background: var(--sunken); border: 1px solid var(--line); border-radius: 9px; padding: 15px 17px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.65; margin-top: 14px; }
+  pre b { color: var(--accent); font-weight: 600; }
+  pre .ok { color: var(--ok); }
+  pre .bad { color: var(--bad); }
+
+  .steps { counter-reset: s; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .steps li { counter-increment: s; background: var(--surface); padding: 13px 17px 13px 52px; position: relative; font-size: 13.5px; }
+  .steps li::before { content: counter(s); position: absolute; left: 17px; top: 13px; font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--accent); }
+  .steps li b { font-weight: 600; }
+  .steps li span { color: var(--muted); }
+
+  .phases { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 16px; }
+  .phase { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 20px; }
+  .phase h4 { font-family: var(--display); font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+  .phase .when { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px; }
+  .phase ul { display: grid; gap: 6px; }
+  .phase li { font-size: 13px; display: flex; gap: 8px; align-items: baseline; }
+  .phase li::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex: none; transform: translateY(-2px); }
+
+  blockquote { border-left: 3px solid var(--accent-line); padding-left: 18px; margin: 18px 0 0; font-size: 15.5px; line-height: 1.6; }
+  blockquote p + p { margin-top: 12px; }
+
+  footer { padding-block: 32px 56px; color: var(--muted); font-size: 13px; }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">ONEPASS · build report</p>
+    <h1>What ONEPASS is, and what it isn&rsquo;t yet</h1>
+    <p class="standfirst">
+      A working multi-tenant platform — 74 tables, 60 screens, 123 integration tests and 60 browser
+      tests — with a precise account of which parts move real money, which compute real statistics,
+      and which are waiting on a credential. Nothing below is claimed without something you can run.
+    </p>
+    <div class="meta">
+      <span><b>Stack</b> Next.js 15 · Postgres 16 · Redis 7 · Drizzle</span>
+      <span><b>Tests</b> 123 integration + 60 end-to-end in a real browser</span>
+      <span><b>Verified</b> against a production build, 9 September</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <div class="wrap">
+    <ol>
+      <li><a href="#readiness">Launch readiness</a></li>
+      <li><a href="#built">Built</a></li>
+      <li><a href="#honest">Real vs simulated</a></li>
+      <li><a href="#isolation">Isolation</a></li>
+      <li><a href="#shield">The Shield</a></li>
+      <li><a href="#security">Security results</a></li>
+      <li><a href="#flows">Flows</a></li>
+      <li><a href="#money">Monetization</a></li>
+      <li><a href="#roadmap">MVP &amp; phases</a></li>
+      <li><a href="#moat">Moat</a></li>
+      <li><a href="#pitch">Pitch</a></li>
+      <li><a href="#walkthrough">Walkthrough</a></li>
+      <li><a href="#next">What I need</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<section id="readiness">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">00</span><h2>Launch readiness</h2></div>
+    <p class="sec-intro">
+      Where ONEPASS actually stands for an India-wide launch, split so that what is
+      finished is not confused with what is waiting on somebody.
+    </p>
+
+    <div class="note">
+      <b>The application is production-ready. The launch is not blocked on code.</b>
+      The production build was booted under <code>NODE_ENV=production</code> and
+      exercised end to end: every public route, the whole signed-in consumer surface,
+      the partner console and the platform console answered 200; <code>/api/me/pass</code>
+      minted a live rotating token; CSS and JavaScript chunks loaded; tenant isolation
+      still returned 404 to a consumer; and all 61 browser tests passed against that
+      production server rather than a development one — including the real-time test,
+      which admits a ticket in one browser and asserts that a door console in another
+      updates on its own. That bundle carries no <code>.env</code>: every value came
+      from the process environment, which is what makes it a build a host configures
+      rather than one that carries a developer&rsquo;s database inside it. What remains
+      is infrastructure and third-party credentials, which are not ours to create.
+    </div>
+
+    <h3>Completed</h3>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Area</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Identity, access, consent</td><td>Argon2id, opaque sessions, per-membership RBAC, consent-scoped disclosure. 123 integration tests.</td></tr>
+          <tr><td class="k">Commerce</td><td>Capacity, offers, bookings, tickets, receipts, warranties, returns, rewards — concurrency proven under load.</td></tr>
+          <tr><td class="k">Credentials</td><td>Ed25519 over a hash of canonical claims; tamper flips the verdict and raises a security event.</td></tr>
+          <tr><td class="k">Three surfaces</td><td>60 screens across consumer, partner and platform, plus a native client for the pass.</td></tr>
+          <tr><td class="k">Isolation</td><td>Three Postgres roles, row-level security, consent-gated view. Verified over HTTP and at the database.</td></tr>
+          <tr><td class="k">Production packaging</td><td>Standalone bundle that is self-contained after build, binds <code>0.0.0.0</code>, honours <code>PORT</code>, and refuses to start on an unsafe configuration.</td></tr>
+          <tr><td class="k">Verification</td><td>123 integration tests, 60 browser tests — the browser suite runs against a deployed URL via <code>E2E_BASE_URL</code>, so it can smoke-test the real thing after a release.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Remaining before an India launch — none of it code</h3>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Blocker</th><th>Who</th><th>Why it blocks</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Managed Postgres 16 + Redis 7</td><td>You</td><td>The app refuses to start in production without both. Nothing here can provision them.</td></tr>
+          <tr><td class="k">A host, and a domain over HTTPS</td><td>You</td><td><code>APP_URL</code> must be https in production — the guard rejects anything else.</td></tr>
+          <tr><td class="k">Razorpay live keys</td><td>You, after KYC</td><td>The sandbox provider is refused in production, by design. No payment can be taken without them.</td></tr>
+          <tr><td class="k">Resend + MSG91 credentials</td><td>You</td><td>Sign-in codes go nowhere without them. MSG91 additionally needs DLT registration, which is an Indian regulatory step with its own lead time.</td></tr>
+          <tr><td class="k">A scheduler for the sweeps</td><td>You</td><td>Expired holds and ended offers are swept by a command, not a cron. Anything that runs it every few minutes will do.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>India-wide by construction</h3>
+    <div class="prose">
+      <p>
+        Nothing scopes the product to a city. Cities are rows with an <code>is_live</code>
+        flag; venues, offers and city passes hang off them; discovery, the planner and
+        travel mode all read the live set. Opening Jaipur is a row and a partner, not a
+        release. The last hardcoded assumption — the planner suggesting example prompts
+        that named Pune — now generates its examples from whichever cities are live, so a
+        person in a new city is never shown three suggestions that would return nothing.
+      </p>
+      <p>
+        The India-first choices are deliberate and sit in one layer: rupees as integer
+        paise, <code>Asia/Kolkata</code> for every "today", <code>en-IN</code> formatting,
+        E.164 mobile numbers, and Razorpay as the payment rail with an adapter interface
+        behind it.
+      </p>
+    </div>
+
+    <h3>Future phase — international</h3>
+    <div class="prose">
+      <p>
+        Not started, and deliberately not started. The seams that would carry it already
+        exist — the payment provider is an interface with adapters, money is minor units
+        with a currency column, locale is a profile field, and cities carry their own
+        timezone — but no second currency, tax model, provider or locale catalogue has
+        been built, and building them now would be carrying weight before there is a
+        market to carry it for.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="built">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>What was implemented</h2></div>
+    <p class="sec-intro">Counted from the working tree, not from a plan.</p>
+
+    <ul class="tiles">
+      <li class="tile"><div class="n">74</div><div class="k">tables</div></li>
+      <li class="tile"><div class="n">60</div><div class="k">screens</div></li>
+      <li class="tile"><div class="n">44</div><div class="k">API routes</div></li>
+      <li class="tile"><div class="n">38</div><div class="k">service modules</div></li>
+      <li class="tile"><div class="n">123</div><div class="k">integration tests</div></li>
+      <li class="tile"><div class="n">60</div><div class="k">browser tests</div></li>
+    </ul>
+
+    <h3>The three surfaces</h3>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Surface</th><th>Screens</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">Public</td>
+            <td>6</td>
+            <td>Landing with live ecosystem figures · <code>/verify</code> and <code>/v/[ref]</code> credential verification, working signed-out · sign-in, sign-up, code entry, recovery</td>
+          </tr>
+          <tr>
+            <td class="k">Consumer</td>
+            <td>24</td>
+            <td>Home · rotating pass · explore · live deals · <b>plan</b> · <b>travel</b> · bookings · tickets · receipts with search · warranties · returns · wallet · savings · split · gifts · <b>city pass</b> · <b>quests</b> · <b>help</b> · profile with consent and device management</td>
+          </tr>
+          <tr>
+            <td class="k">Merchant OS</td>
+            <td>16</td>
+            <td>Dashboard · bookings · door console · live deals · deal creation · inventory · offers · customers (consent-gated) · returns queue · receipts · loyalty · insights · demand · API · settings</td>
+          </tr>
+          <tr>
+            <td class="k">Platform console</td>
+            <td>10</td>
+            <td>Overview · users with suspend and restore · partners · transactions · audit trail · <b>security queue with the detector sweep</b> · <b>support queue with the state machine wired</b> · credentials · health</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The commerce layer, built this session</h3>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Module</th><th>The decision that mattered</th></tr></thead>
+        <tbody>
+          <tr><td class="k">inventory.ts</td><td>Capacity taken under <code>SELECT … FOR UPDATE</code>. 25 concurrent buyers against 10 seats: exactly 10 succeed, 15 are refused. Proven by test, not by reasoning.</td></tr>
+          <tr><td class="k">rewards.ts</td><td>An append-only ledger; the balance column is a cache the tests reconcile against it. Cross-brand redemption settles at the issuer&rsquo;s rate, which is why a partner would agree to honour someone else&rsquo;s points.</td></tr>
+          <tr><td class="k">booking.ts</td><td>Capacity, redemption, savings, points and ticket commit in one transaction. Confirmation is idempotent — a webhook arriving twice issues one ticket.</td></tr>
+          <tr><td class="k">tickets.ts</td><td>Admission is a conditional <code>UPDATE … WHERE state = 'ISSUED'</code>. Six simultaneous door scans admit exactly once.</td></tr>
+          <tr><td class="k">offers.ts</td><td>One table for five kinds of price change. The per-user cap is a unique index, not an <code>if</code>.</td></tr>
+          <tr><td class="k">checkout.ts</td><td>One cart, many bookings, <em>one</em> transaction on the existing rail. A failure on line three rolls back lines one and two.</td></tr>
+          <tr><td class="k">receipts · warranties · returns</td><td>Totals recomputed from lines, never trusted. Warranty expiry is calendar-correct (31 Jan + 1 month is 28 Feb). Returns are an explicit transition map.</td></tr>
+          <tr><td class="k">split.ts · gifts.ts</td><td>Shares sum to exactly the total, remainder paise to the organiser. A gift reassigns a paid booking rather than re-issuing it, so capacity is never released and re-taken.</td></tr>
+          <tr><td class="k">insights · demand</td><td>Named detectors over real rows. Every finding stores its <code>method</code>, <code>evidence</code> and <code>sampleSize</code>.</td></tr>
+          <tr><td class="k">assistant/</td><td>A deterministic solver, not a model. <code>interpretRequest</code> parses a sentence and shows you what it understood <em>before</em> the plan; <code>planDay</code> and <code>planTrip</code> choose from live inventory and print the reason each item is there, in that item&rsquo;s own figures. When it cannot fill the request it says which constraint stopped it rather than returning a shorter plan as if it were complete.</td></tr>
+          <tr><td class="k">support/</td><td>The intake <code>support_tickets</code> never had. <code>redactSecrets</code> strips password-, one-time-code- and card-shaped text at the door, so a live credential cannot reach a queue an agent reads or an export carries. One open request per person per category, so a frustrated double-submit is one case.</td></tr>
+          <tr><td class="k">security/detect.ts</td><td>Four detectors and a deliberate refusal — see section 05.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="honest">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Real, simulated, or waiting on a key</h2></div>
+    <p class="sec-intro">
+      The section the brief asked for three times, and the one worth reading first. Each row says
+      exactly what would make it live.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Capability</th><th>Status</th><th>What is genuinely real</th><th>To go live</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">Authentication</td>
+            <td><span class="pill p-real">Real</span></td>
+            <td>Argon2id at 19 MiB, opaque session tokens stored as SHA-256, generation counter for instant global revocation, anti-enumeration on every path</td>
+            <td>Nothing</td>
+          </tr>
+          <tr>
+            <td class="k">OTP</td>
+            <td><span class="pill p-part">Real, console delivery</span></td>
+            <td>Generation, hashing, 10-minute expiry, single use, attempt caps, resend cooldown, rate limits, audit trail. Codes are never stored, logged or returned in plaintext</td>
+            <td><code>RESEND_API_KEY</code> / <code>MSG91_AUTH_KEY</code>. Production <em>refuses to start</em> on console delivery, on a provider whose adapter is unwritten (SES, Twilio), or on a wired provider with no credential — each of those refusals is asserted by a test</td>
+          </tr>
+          <tr>
+            <td class="k">Payments</td>
+            <td><span class="pill p-sample">Sandbox</span></td>
+            <td>Razorpay adapter written: order creation, webhook signature verified with a constant-time compare, idempotency keys, explicit status machine. The sandbox settles instantly and moves nothing</td>
+            <td><code>RAZORPAY_KEY_ID</code>, <code>_KEY_SECRET</code>, <code>_WEBHOOK_SECRET</code>. Production refuses the sandbox provider</td>
+          </tr>
+          <tr>
+            <td class="k">CCAvenue / Cashfree / PayU</td>
+            <td><span class="pill p-none">Not built</span></td>
+            <td>The <code>PaymentProviderAdapter</code> interface is the seam. Each is an adapter, not a rewrite</td>
+            <td>Merchant credentials, then one adapter each</td>
+          </tr>
+          <tr>
+            <td class="k">Credential verification</td>
+            <td><span class="pill p-real">Real</span></td>
+            <td>Ed25519 over a SHA-256 of canonical claims. Tampering with the database flips the verdict to INVALID and raises a HIGH security event — shown below</td>
+            <td>Nothing</td>
+          </tr>
+          <tr>
+            <td class="k">Rotating pass</td>
+            <td><span class="pill p-real">Real</span></td>
+            <td>RFC 6238 TOTP, secret sealed with AES-256-GCM, replay blocked by a unique index on <code>(pass, org, counter)</code>. QR encoder is our own ISO 18004 implementation, verified against a reference decoder</td>
+            <td>Nothing</td>
+          </tr>
+          <tr>
+            <td class="k">NFC</td>
+            <td><span class="pill p-none">Not built</span></td>
+            <td>The pass envelope would carry unchanged; nothing is claimed</td>
+            <td>Native builds — Web NFC is Android-Chrome only</td>
+          </tr>
+          <tr>
+            <td class="k">Planner &amp; concierge</td>
+            <td><span class="pill p-part">Real computation, no model</span></td>
+            <td>A constraint solver over live inventory and offers. <b>No language model is connected</b>, and no screen calls it AI</td>
+            <td>A model key, only if conversational phrasing is wanted</td>
+          </tr>
+          <tr>
+            <td class="k">Merchant advisor</td>
+            <td><span class="pill p-real">Real statistics</span></td>
+            <td>Six named detectors over the organization&rsquo;s own rows. Found the Tuesday shortfall unprompted — see below</td>
+            <td>Nothing. More trade makes it sharper</td>
+          </tr>
+          <tr>
+            <td class="k">Demand forecast</td>
+            <td><span class="pill p-part">Real method, seeded history</span></td>
+            <td>Trailing mean over matching weekday-and-hour windows, with confidence derived from sample size and dispersion. Below three windows it reports <em>&ldquo;not enough history — this is a placeholder, not a forecast&rdquo;</em></td>
+            <td>Live booking volume. The method needs no change</td>
+          </tr>
+          <tr>
+            <td class="k">Real-time</td>
+            <td><span class="pill p-real">Real</span></td>
+            <td>Transactional outbox → Redis pub/sub → SSE, and now subscribed to at both ends. Events are written inside the transaction that caused them, so nothing is announced that did not commit; the door console, the merchant dashboard, the security console and a consumer&rsquo;s tickets update themselves when one arrives. Proved by a browser test that admits a ticket in one context and asserts a door console in another moves without being touched</td>
+            <td>Nothing</td>
+          </tr>
+          <tr>
+            <td class="k">Suspicious activity</td>
+            <td><span class="pill p-real">Real detection</span></td>
+            <td>Four detectors over rows the system already holds: impossible travel from scan coordinates, scan velocity, device bursts and credential stuffing. Each finding carries the arithmetic that produced it. 22 integration tests, most of them negative cases</td>
+            <td>A scheduler. There is none in this repository — the sweep is a button and a command, and the console says so</td>
+          </tr>
+          <tr>
+            <td class="k">Automatic lockout</td>
+            <td><span class="pill p-none">Deliberately not built</span></td>
+            <td>Detection files findings and stops. Suspension stays a human decision on the account screen, through the one path that already exists</td>
+            <td>Nothing — this is the intended behaviour, not a gap</td>
+          </tr>
+          <tr>
+            <td class="k">Containers &amp; deployment</td>
+            <td><span class="pill p-part">Written, never built</span></td>
+            <td>Multi-stage Dockerfile, compose stack, <code>.env.example</code> derived from the real env schema, and two deployment documents. The standalone bundle was run and its health endpoint answered</td>
+            <td>A registry this environment can reach. <b>No Docker layer has ever executed here</b> — the base image tag is unverified</td>
+          </tr>
+          <tr>
+            <td class="k">Native app</td>
+            <td><span class="pill p-none">Not built</span></td>
+            <td>The web app is an installable PWA with an offline pass and a service worker that caches nothing authenticated. No store submission has been made and none is claimed</td>
+            <td>An Expo project, which is also what NFC needs</td>
+          </tr>
+          <tr>
+            <td class="k">Indoor maps</td>
+            <td><span class="pill p-sample">Schema only</span></td>
+            <td><code>venue_maps.is_sample</code> is a column, so a sample plan is flagged in the data rather than in a comment</td>
+            <td>Venue-supplied floor plans</td>
+          </tr>
+          <tr>
+            <td class="k">Backups / RPO / RTO</td>
+            <td><span class="pill p-none">Not configured</span></td>
+            <td>Nothing is claimed. No availability or recovery figure appears anywhere in the product</td>
+            <td>A managed Postgres with PITR, then measure before quoting</td>
+          </tr>
+          <tr>
+            <td class="k">Compliance</td>
+            <td><span class="pill p-none">No claim made</span></td>
+            <td>No PCI, ISO or &ldquo;government compliant&rdquo; claim appears in the codebase or the UI. Card numbers, CVVs and UPI PINs are never stored — there is no column for them</td>
+            <td>An actual audit, by actual auditors</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="isolation">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>The three domains, and why they are roles</h2></div>
+    <p class="sec-intro">
+      The brief asked for three separate databases. What was built delivers the requirement — least
+      privilege, service-level boundaries, no omnipotent connection — without the cost that three
+      physical databases would have imposed.
+    </p>
+
+    <div class="prose">
+      <p>
+        ONEPASS&rsquo;s core rows are relationships <em>between</em> a consumer and a business. A
+        booking references both. A transaction references both. Split across three databases, every
+        one of those foreign keys becomes an application-level join: referential integrity is gone,
+        &ldquo;take the seat, charge the card, issue the ticket&rdquo; can no longer commit
+        atomically, and the boundary moves into application code — which is exactly where the same
+        brief says security must <em>not</em> live.
+      </p>
+      <p>
+        So the separation was built one layer lower, where application bugs cannot reach it:
+        <strong>three PostgreSQL roles with per-table grants</strong>, plus row-level security on the
+        seventeen relationship tables, plus a consent-gated view as the only route from a business
+        connection to a person&rsquo;s identity.
+      </p>
+    </div>
+
+    <div class="scroller" style="margin-top:22px">
+      <table>
+        <thead><tr><th>Service</th><th>Role</th><th>Reaches</th><th>Cannot reach</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">Consumer API<br><code>/api/me/*</code></td>
+            <td><code>onepass_consumer</code></td>
+            <td>Their own identity, consents, bookings, tickets, receipts, warranties, rewards, savings; the public catalogue read-only</td>
+            <td>RBAC tables · API keys · webhooks · another person&rsquo;s rows</td>
+          </tr>
+          <tr>
+            <td class="k">Partner API<br><code>/api/partner/[org]/*</code></td>
+            <td><code>onepass_business</code></td>
+            <td>Its own venues, capacity, offers, staff, bookings, receipts, returns — filtered by RLS to its own tenant</td>
+            <td><code>users</code> · <code>sessions</code> · <code>devices</code> · <code>payment_methods</code> · <code>audit_logs</code> · <code>security_events</code> — <b>no grant at all</b></td>
+          </tr>
+          <tr>
+            <td class="k">Admin API<br><code>/api/admin/*</code></td>
+            <td><code>onepass_admin</code></td>
+            <td>RBAC, audit, security, platform config; read across the rest</td>
+            <td>Cannot edit or delete the audit trail — <code>INSERT</code> only, for every role</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <b>The seam is real.</b> Set <code>DATABASE_URL_CONSUMER</code>, <code>_BUSINESS</code> and
+      <code>_PLATFORM</code> and the separation is live; leave them unset and everything shares one
+      connection. <code>isolationStatus()</code> reports which mode is actually running rather than
+      assuming — and if you later want three physical instances, these grants <em>are</em> the split
+      line, so it becomes a migration rather than a redesign.
+    </div>
+  </div>
+</section>
+
+<section id="shield">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>The Suspicious Activity Shield</h2></div>
+    <p class="sec-intro">
+      Four detectors, one writer, and a refusal that shaped the rest of it.
+    </p>
+
+    <div class="note warn">
+      <b>The refusal.</b> &ldquo;Impossible travel&rdquo; is conventionally built from IP
+      geolocation: take the address on this sign-in, take the address on the last one, look both up
+      with an IP-intelligence vendor. ONEPASS cannot do that, and should not be made able to. Every
+      address in this system is stored as <code>ip_hash</code> — a peppered one-way hash — precisely
+      so a database leak yields correlation inside these tables and nothing that points at a street.
+      Adding a column that could be geolocated would trade a real privacy property for a feature.
+    </div>
+
+    <div class="prose">
+      <p>
+        So travel is computed from <code>pass_presentations</code> joined to
+        <code>venues.latitude/longitude</code> — the places a pass was actually presented. That is
+        better evidence than an address: a scan is a physical event at a known point, where an IP is
+        a guess about a network. It also needs no vendor, no contract and no egress.
+      </p>
+      <p>
+        Building it surfaced a gap in the data. A presentation recorded only the <em>organization</em>,
+        because a door console authenticates as one — so a chain with branches in Pune and Mumbai
+        produced two scans that could have happened at either, and the detector could not tell a
+        journey from a re-scan. The honest fix was to record the door:
+        <code>pass_presentations.venue_id</code> is new, nullable because an organization-wide API key
+        legitimately has no venue, and the detector handles both shapes.
+      </p>
+    </div>
+
+    <div class="scroller" style="margin-top:22px">
+      <table>
+        <thead><tr><th>Detector</th><th>What it measures</th><th>Where it stays quiet</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">Impossible travel</td>
+            <td>Haversine between scan locations ÷ elapsed hours. Above 900 km/h — a jet&rsquo;s cruise speed, not below it — the pair is flagged</td>
+            <td>Pune to Delhi in four hours is a flight, not an incident. Where a terminal named no venue, the <em>slowest</em> candidate pairing is used, so an ambiguous chain cannot manufacture an alert out of its own geography</td>
+          </tr>
+          <tr>
+            <td class="k">Scan velocity</td>
+            <td>The busiest 10-minute window per pass. Severity rises when the burst is mostly rejections — an accepted burst is a turnstile, a rejected burst is something trying codes</td>
+            <td>Five scans across an evening is a person at a cinema</td>
+          </tr>
+          <tr>
+            <td class="k">Device burst</td>
+            <td>Distinct devices enrolled on one account within an hour</td>
+            <td>Two in an afternoon is somebody replacing a phone. Device handles never appear in the evidence — a handle is an authenticator, not a label</td>
+          </tr>
+          <tr>
+            <td class="k">Credential stuffing</td>
+            <td>Failed sign-ins from one origin against many <em>distinct</em> accounts inside fifteen minutes. This is what <code>ip_hash</code> was built for: it cannot say where, but it groups perfectly, and the question is only &ldquo;same origin&rdquo;</td>
+            <td>Ten failures against one account is someone who forgot their password, and the per-account lockout already covers it. A slow trickle across an afternoon is a shared office</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>What it will not do</h3>
+    <div class="prose">
+      <p>
+        The first draft exported <code>lockAccount</code> and <code>unlockAccount</code>. They worked,
+        and they were wrong: <code>PATCH /api/admin/users/[id]</code> already suspends an account,
+        revokes every session through the generation counter, notifies the person and writes the audit
+        entry with the administrator&rsquo;s reason. A second way to lock an account is a second set
+        of rules about what locking means, and the first divergence between them would be discovered
+        during an incident. They were deleted.
+      </p>
+      <p>
+        So detection files findings and stops. Response goes through the console&rsquo;s existing
+        path, where a human supplies the reason. A 900 km/h threshold should not be able to strand a
+        real person at an airport on its own.
+      </p>
+    </div>
+
+    <h3>Findings go to one place</h3>
+    <div class="prose">
+      <p>
+        Into <code>security_events</code>, through <code>recordSecurityEvent</code> — the writer that
+        already existed. No second security store, no <code>SecurityEventV2</code>: the console, the
+        acknowledgement flow and the retention story are all built on that table. Every finding
+        carries a deterministic fingerprint, and one already filed inside the window is not filed
+        again, which is what makes a scheduled sweep safe.
+      </p>
+    </div>
+
+<pre>$ npm run security:scenario        <b># writes the three shapes, then runs the real detectors</b>
+
+found 4   written 3   already filed 1
+
+  [MEDIUM] suspicious.impossible_travel
+    Pass presented 126 km apart in 4 min — <span class="bad">1703 km/h</span> implied.
+    fromVenue "Grand Sahyadri — Koregaon Park"  toVenue "Grand Sahyadri — Bandra"
+    distanceKm 126.3  elapsedMinutes 4.4  thresholdKmh 900
+    located "both terminals named their venue"
+    note "Computed from scan locations, not from IP addresses"
+
+  [HIGH] suspicious.credential_stuffing
+    Failed sign-ins against <span class="bad">8</span> different accounts from one origin in 4 min.
+    distinctAccounts 8  totalAttempts 8  accountsThatExist 0  threshold 5
+
+$ npm run security:sweep       <b># run it again</b>
+found 4   written <span class="ok">0</span>   already filed <span class="ok">4</span></pre>
+
+    <div class="note">
+      <b>The scenario is a rehearsal, and says so.</b> The seed trades normally and the detectors
+      find nothing in it — which is the correct result and the honest empty state. Rather than bake a
+      fake incident into the seed, <code>npm run security:scenario</code> writes the evidence a real
+      incident would leave, tags every row it creates, clears the previous run so it is repeatable,
+      and then lets the real detectors find it through the real code path.
+    </div>
+  </div>
+</section>
+
+<section id="security">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Security test results</h2></div>
+    <p class="sec-intro">
+      Run, not asserted. Every line below was produced by executing the attack against the running
+      system.
+    </p>
+
+    <h3>Over HTTP, against the live server</h3>
+<pre>Business A (Phoenix owner) → Business B's console
+  /business/[SAHYADRI]/dashboard    <span class="ok">404</span>
+  /business/[SAHYADRI]/bookings     <span class="ok">404</span>
+  /business/[SAHYADRI]/inventory    <span class="ok">404</span>
+  /business/[SAHYADRI]/deals        <span class="ok">404</span>
+  /business/[PHOENIX]/dashboard     <span class="bad">200</span>  <b>← control: the 404s are not a broken route</b>
+
+Consumer → any partner console        <span class="ok">404</span>
+Consumer → /api/admin/{users,partners,security,audit}   <span class="ok">404 ×4</span>
+Partner  → /api/admin/{users,transactions}              <span class="ok">404 ×2</span></pre>
+    <p class="prose" style="margin-top:14px">
+      404 rather than 403 throughout. A 403 confirms the resource exists, which turns an
+      authorization boundary into an enumeration oracle.
+    </p>
+
+    <h3>At the database, below the application</h3>
+<pre>SET ROLE onepass_business;
+  SELECT … FROM users            <span class="ok">ERROR: permission denied</span>
+  SELECT … FROM sessions         <span class="ok">ERROR: permission denied</span>
+  SELECT … FROM payment_methods  <span class="ok">ERROR: permission denied</span>
+  SELECT … FROM audit_logs       <span class="ok">ERROR: permission denied</span>
+  UPDATE audit_logs SET …        <span class="ok">ERROR: permission denied</span>
+
+Hotel A, tenant set, asks for Cinema B's booking by primary key
+  rows returned                        <span class="ok">0</span>
+  rows updated by cross-tenant UPDATE  <span class="ok">0</span>
+  INSERT a venue into Cinema B         <span class="ok">ERROR: violates row-level security policy</span>
+  forged tenant id                     <span class="ok">0 rows</span>
+  no tenant set at all                 <span class="ok">0 rows — fails closed</span></pre>
+
+    <h3>Consent, proven in both directions</h3>
+<pre>before any consent      name=<span class="bad">&lt;withheld&gt;</span>    email=<span class="bad">&lt;withheld&gt;</span>
+after identity consent  name=<span class="ok">Ananya Rao</span>   email=<span class="bad">&lt;withheld&gt;</span>   <b>← identity ≠ contact</b>
+after revocation        name=<span class="bad">&lt;withheld&gt;</span></pre>
+    <p class="prose" style="margin-top:14px">
+      This is the &ldquo;a restaurant should not receive unrelated personal information&rdquo;
+      requirement, enforced as a join condition inside a view the caller cannot bypass.
+    </p>
+
+    <h3>Credential integrity, proven by attacking it</h3>
+<pre>UPDATE credentials SET claims = jsonb_set(claims,'{year}','4') …   <b>← direct database tamper</b>
+
+  verdict           <span class="bad">Invalid</span>
+  Integrity check   <span class="bad">FAIL — "Claims do not match their hash"</span>
+  security_events   <span class="bad">HIGH | CREDENTIAL_INTEGRITY_FAILURE</span>
+
+UPDATE … restore
+  verdict           <span class="ok">Verified</span></pre>
+    <p class="prose" style="margin-top:14px">
+      This is the property that makes the verification API worth trusting: a database compromise
+      cannot forge a credential, because the signature is over a hash of the claims and the issuer
+      holds the key.
+    </p>
+
+    <h3>Authorisation, replayed rather than assumed</h3>
+<pre>A staff server action, captured byte-for-byte from the browser and replayed:
+
+  as support@onepass.in     <span class="bad">303</span>  ticket moved, audit row written
+  as meera@example.in       <span class="ok">the not-found page — and the database is unchanged</span>
+  with no session at all    <span class="ok">sent to /sign-in — and the database is unchanged</span>
+
+  <b>Asserted against the rows, not against the response text.</b> The action's URL carries
+  the previous move's "?done=Ticket moved…" banner, so a page rendered for that URL
+  echoes the sentence whether or not anything happened. Searching the body for it
+  finds a phrase, not a permission.</pre>
+
+    <h3>Concurrency, where money and capacity meet</h3>
+<pre>25 concurrent buyers, 10 seats     <span class="ok">10 succeed, 15 refused, 0 oversold</span>
+6 simultaneous door scans          <span class="ok">1 admits, 5 rejected ALREADY_ADMITTED</span>
+2 racing confirmations             <span class="ok">1 ticket issued, 1 ledger entry, 1 seat sold</span>
+20 concurrent ledger writes        <span class="ok">cached balance == computed balance</span>
+duplicate payment webhook          <span class="ok">credited once</span></pre>
+  </div>
+</section>
+
+<section id="flows">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">07</span><h2>The flows, end to end</h2></div>
+    <p class="sec-intro">Both sides of one transaction, as the code actually runs it.</p>
+
+    <h3>Consumer</h3>
+    <ol class="steps">
+      <li><b>Register</b> <span>— email, optional mobile, Argon2id password. Identical response whether or not the address exists.</span></li>
+      <li><b>Verify</b> <span>— six-digit code, hashed at rest, ten-minute expiry, five attempts.</span></li>
+      <li><b>Pass issued</b> <span>— TOTP secret sealed with AES-256-GCM; the QR carries a reference and a rotating code, never personal data.</span></li>
+      <li><b>Discover</b> <span>— live deals ordered by what expires soonest.</span></li>
+      <li><b>Book</b> <span>— capacity held under a row lock for ten minutes; price derived server-side from the slot and the offer.</span></li>
+      <li><b>Pay</b> <span>— one transaction on the sandbox rail; the browser&rsquo;s word is never trusted.</span></li>
+      <li><b>Confirm</b> <span>— seat sold, offer redeemed, saving recorded, points credited, ticket issued. One database transaction.</span></li>
+      <li><b>Attend</b> <span>— the door admits the ticket exactly once.</span></li>
+      <li><b>Keep</b> <span>— receipt with line items, warranty derived where applicable, return window open.</span></li>
+      <li><b>Withdraw</b> <span>— revoking a consent removes the partner&rsquo;s access on the next read.</span></li>
+    </ol>
+
+    <h3>Merchant</h3>
+    <ol class="steps">
+      <li><b>Publish capacity</b> <span>— slots with a real count, list price and window.</span></li>
+      <li><b>Read the advisor</b> <span>— findings computed from their own rows, each showing its method, sample size and evidence.</span></li>
+      <li><b>Check demand</b> <span>— per-slot estimates with confidence; where history is thin it says so instead of guessing.</span></li>
+      <li><b>Create a deal</b> <span>— discount rule in, computed price out; the deal cannot price below zero or exceed the slot.</span></li>
+      <li><b>Take the booking</b> <span>— arrives in real time on the organization&rsquo;s own channel.</span></li>
+      <li><b>Admit at the door</b> <span>— once, with a readable reason on rejection.</span></li>
+      <li><b>See the customer</b> <span>— through the consent view: a reference always, a name only if shared.</span></li>
+      <li><b>Handle a return</b> <span>— explicit state machine; refunds capped at the units actually returned.</span></li>
+      <li><b>Settle</b> <span>— cross-brand points reconcile at the issuer&rsquo;s rate.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="money">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">08</span><h2>How it makes money</h2></div>
+    <p class="sec-intro">
+      Each line names the column that would meter it, because a revenue model with nowhere to record
+      it is a slide rather than a plan.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Stream</th><th>Metered by</th><th>Why the payer agrees</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Transaction commission</td><td><code>bookings.amount_minor</code> where an offer introduced the sale</td><td>The seat was going to expire unsold. Commission on incremental revenue is not a cost, it is a share.</td></tr>
+          <tr><td class="k">Merchant subscription</td><td>Console access per organization</td><td>Door console, inventory, advisor and demand replace three tools they are already paying for.</td></tr>
+          <tr><td class="k">Verification API</td><td><code>api_usage</code>, daily buckets per key and endpoint</td><td>An employer or landlord verifying a credential pays per check rather than building an integration with each issuer.</td></tr>
+          <tr><td class="k">Consented reach</td><td><code>campaigns.cost_per_delivery_minor</code></td><td>Reaches people who opted in, with a k-anonymity floor of 25 so an audience can never be narrowed to a person.</td></tr>
+          <tr><td class="k">City pass</td><td><code>city_pass_entitlements.settlement_minor</code> per use</td><td>The partner is paid per redemption. It is distribution, not a discount they absorb.</td></tr>
+          <tr><td class="k">Cross-brand settlement</td><td><code>reward_programs.settlement_paise_per_point</code></td><td>The issuer is paid when their points are honoured elsewhere. Nobody gives away another business&rsquo;s margin.</td></tr>
+          <tr><td class="k">Corporate benefits</td><td><code>benefit_allocations</code> per employee per period</td><td>An employer funds a wallet; the network is the redemption surface.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <b>Pricing is proposed, not tested.</b> No ONEPASS merchant has ever paid a rupee. Any plan
+      figure in a deck should be marked as an assumption until a pilot says otherwise.
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">09</span><h2>MVP, and what comes after</h2></div>
+    <p class="sec-intro">
+      The MVP is narrower than what has been built, on purpose: the fastest way to learn whether the
+      network works is to run one loop for real.
+    </p>
+
+    <div class="phases">
+      <div class="phase">
+        <h4>MVP — one city, one loop</h4>
+        <p class="when">Pilot · 8–10 weeks</p>
+        <ul>
+          <li>5–8 Pune partners across cinema, dining and parking</li>
+          <li>Live deals on genuinely unsold capacity</li>
+          <li>Pass, door console, tickets, receipts</li>
+          <li>Real payments — Razorpay live</li>
+          <li>Points within a partner; cross-brand with two willing pairs</li>
+          <li>The advisor, in front of real merchants</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h4>Phase 2 — make it worth staying</h4>
+        <p class="when">After the pilot retains</p>
+        <ul>
+          <li>Cross-brand redemption across the whole network</li>
+          <li>City pass with settlement</li>
+          <li>Returns and warranty vault with retail partners</li>
+          <li>The verification API as a priced product</li>
+          <li>Campus vertical — a university is already an organization kind</li>
+          <li>Native apps, and NFC with them</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h4>Phase 3 — become infrastructure</h4>
+        <p class="when">Once the loop compounds</p>
+        <ul>
+          <li>Multi-city, revenue share per city</li>
+          <li>Developer platform: keys, webhooks, metered billing</li>
+          <li>Corporate benefits as a funded wallet</li>
+          <li>Ecosystem analytics, aggregate and consent-aware</li>
+          <li>Split payments and gifting at scale</li>
+          <li>Three physical databases, along the seam the grants already define</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="moat">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Where the defensibility actually is</h2></div>
+    <div class="prose">
+      <p>
+        It is not the QR code, and it is not the app. Three things compound:
+      </p>
+      <p>
+        <strong>The settlement graph.</strong> Once a cinema&rsquo;s points are honoured at a
+        restaurant and money moves between them, the relationship has a price attached and a
+        switching cost. A competitor can copy the feature; they cannot copy the agreements.
+      </p>
+      <p>
+        <strong>Consent as an asset.</strong> A person who has granted a partner access has done
+        something no scraped dataset replicates, and something that survives a privacy regime
+        tightening. The k-anonymity floor and per-scope consent are not compliance theatre — they
+        are what makes the audience durable.
+      </p>
+      <p>
+        <strong>Being the verifier of record.</strong> An issuer whose credentials are checked
+        through ONEPASS, with the check recorded and visible to them, has a reason to keep issuing
+        through it. That is a two-sided lock-in that gets harder to displace with every credential.
+      </p>
+      <p>
+        What is <em>not</em> a moat: the schema, the UI, the QR encoder. All copyable in a quarter.
+        The moat is the graph, and the graph only exists once the loop runs for real.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="pitch">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Three minutes, to an investor</h2></div>
+    <blockquote>
+      <p>
+        India&rsquo;s physical commerce runs on a hundred separate identities. A hotel knows you; the
+        cinema next door does not. You prove who you are at every counter, and every business rebuilds
+        the same customer record from scratch — badly, and at their own cost.
+      </p>
+      <p>
+        ONEPASS is the layer underneath. One identity, presented with consent, verified in about a
+        second. For the person: their tickets, receipts, warranties and points in one place, and a
+        consent screen where withdrawing takes one tap. For the business: capacity that would have
+        expired unsold, priced and distributed in minutes, and a customer record they did not have to
+        build.
+      </p>
+      <p>
+        The wedge is unsold capacity, because it is the one thing every partner has and nobody
+        monetises. A cinema seat at 19:01 is worth zero. At 18:30 it is worth ₹149 to someone who
+        would not otherwise have come. We take a share of revenue that did not exist before we
+        introduced it — which is why partners say yes.
+      </p>
+      <p>
+        The business is not the app. It is the settlement graph underneath: when a cinema&rsquo;s
+        points are spent at a restaurant, we settle between them, and every such agreement makes the
+        network harder to leave. Add the verification API — priced per check — and the loyalty
+        network becomes infrastructure rather than a feature.
+      </p>
+      <p>
+        What exists today is a working multi-tenant platform: 74 tables, 60 screens, tenant isolation
+        enforced by the database rather than by application code, and 183 passing tests including
+        the adversarial ones — 123 against a live Postgres and 60 driving a real browser. Payments run on a labelled sandbox until merchant credentials arrive —
+        we are not pretending otherwise. What we need is a pilot: eight Pune partners, one city, one
+        loop, running for real.
+      </p>
+    </blockquote>
+  </div>
+</section>
+
+<section id="walkthrough">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Three minutes, walking someone through it</h2></div>
+    <p class="sec-intro">
+      Two browsers side by side: a person signed in as <code>meera@example.in</code>, merchant as
+      <code>owner@phoenix-cinemas.example</code>. Password <code>onepass-sample-password</code>.
+    </p>
+
+    <ol class="steps">
+      <li><b>Open the landing page.</b> <span>&ldquo;These numbers are read from the database on every request. Five venues, seven live deals — the page cannot drift from the product.&rdquo;</span></li>
+      <li><b>Consumer → ONEPASS.</b> <span>&ldquo;A rotating code. It carries a reference and a time-based code, never her name — so a photograph of this screen is worthless in thirty seconds.&rdquo;</span></li>
+      <li><b>Live Deals.</b> <span>&ldquo;Ordered by what expires soonest. Forty seats at Phoenix tonight, ₹149 against ₹300. That seat is worth nothing at 19:01.&rdquo;</span></li>
+      <li><b>Book it.</b> <span>Capacity is held under a row lock. &ldquo;Twenty-five people going for ten seats: exactly ten get one. We have a test that does that.&rdquo;</span></li>
+      <li><b>Confirmation.</b> <span>&ldquo;One transaction: seat sold, offer redeemed, ₹151 saved, points credited, ticket issued. There is no state where three of those five are true.&rdquo;</span></li>
+      <li><b>Receipts → warranty.</b> <span>&ldquo;The kettle carries a 24-month warranty, derived at issue. The return window is stored on the receipt, so a policy change tomorrow cannot close it.&rdquo;</span></li>
+      <li><b>Savings.</b> <span>&ldquo;A sum of rows, each pointing at the purchase that caused it. Not a number we chose.&rdquo;</span></li>
+      <li><b>Switch to Merchant OS → Insights.</b> <span><b>The moment.</b> &ldquo;Tuesday revenue is 54% below the weekly average. Nobody told it about Tuesday — it computed that from 57 trading days, and here is the evidence table it used.&rdquo;</span></li>
+      <li><b>Demand.</b> <span>&ldquo;96% confidence where there are eight matching windows. And here — no history, so it says <em>this is a placeholder, not a forecast</em>, rather than inventing one.&rdquo;</span></li>
+      <li><b>Create a deal from the suggestion.</b> <span>The form pre-fills from the forecast. The consumer&rsquo;s Live Deals shows it.</span></li>
+      <li><b>Door console.</b> <span>Admit the ticket. Scan again: <em>Already used.</em> &ldquo;Six simultaneous scans admit exactly once — the check and the write are one statement.&rdquo;</span></li>
+      <li><b>Customers.</b> <span>&ldquo;A reference always. A name only where she granted it. Contact is separately withheld — identity consent does not imply contact consent.&rdquo;</span></li>
+      <li><b>The isolation test.</b> <span>Change the org id in the URL. <em>404.</em> &ldquo;Not 403 — a 403 would confirm it exists. And below that, the business role has no grant on the users table at all.&rdquo;</span></li>
+      <li><b>The tamper test.</b> <span>Edit a credential&rsquo;s claims in psql. Refresh <code>/v/[ref]</code>: <em>Invalid.</em> &ldquo;A database compromise cannot forge a credential.&rdquo;</span></li>
+      <li><b>The Shield.</b> <span>Platform console → Security → <em>Sweep the last 3 hours</em>. &ldquo;One pass, 126 km apart, four minutes: 1,703 km/h. And notice where that came from — not an IP address, because we store a one-way hash of those on purpose. It came from the two doors it was actually presented at.&rdquo; Press it again: <em>0 new findings, 4 already filed.</em></span></li>
+      <li><b>The planner.</b> <span>&ldquo;Saturday evening in Pune for two, under ₹2,000, food and a film.&rdquo; It shows what it understood before it shows the plan, and each item says why it is there in that item&rsquo;s own numbers. Then ask for the impossible: it names the constraint that stopped it instead of quietly returning less.</span></li>
+    </ol>
+
+    <div class="note">
+      <b>Close on the honesty.</b> &ldquo;Payments are on a labelled sandbox until we have merchant
+      keys. Nothing here is an AI — the planner is a constraint solver and the advisor is arithmetic,
+      and we say so on the screen. The security sweep is a button, because nothing in this repository
+      schedules it, and the console says that too. We would rather show you what is real.&rdquo;
+    </div>
+  </div>
+</section>
+
+<section id="next">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">13</span><h2>What I need from you, and what I would build next</h2></div>
+
+    <h3>Credentials — nothing works live without these</h3>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Variable</th><th>Unlocks</th><th>Where to get it</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><code>RAZORPAY_KEY_ID</code><br><code>RAZORPAY_KEY_SECRET</code><br><code>RAZORPAY_WEBHOOK_SECRET</code></td><td>Real payments. Production refuses to start on the sandbox</td><td>Razorpay dashboard, after KYC</td></tr>
+          <tr><td class="k"><code>RESEND_API_KEY</code></td><td>Real email. Production refuses to start on console delivery, on SES (whose adapter is unwritten), or on RESEND without this key</td><td>resend.com, plus a verified sending domain</td></tr>
+          <tr><td class="k"><code>MSG91_AUTH_KEY</code><br><code>MSG91_SENDER_ID</code></td><td>Real SMS OTP. Production refuses to start on Twilio (adapter unwritten) or on MSG91 without this key</td><td>MSG91, plus DLT registration (required in India)</td></tr>
+          <tr><td class="k"><code>ENCRYPTION_KEY</code><br><code>HASH_PEPPER</code></td><td>Sealing and audit hashing. <b>Generate fresh for production; never reuse the development values</b></td><td><code>openssl rand -base64 32</code> / <code>-hex 32</code></td></tr>
+          <tr><td class="k"><code>DATABASE_URL_CONSUMER</code><br><code>_BUSINESS</code> · <code>_PLATFORM</code></td><td>Grant-level domain isolation</td><td>Run <code>src/db/isolation.sql</code>, then set a password per role</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Done since the last report</h3>
+    <ol class="steps">
+      <li><b>Browser end-to-end tests.</b> <span>60 Playwright tests across nine specs — consumer, partner, admin, public, PWA, isolation, auth, support and security. They caught a route collision that made the consumer home dead code, and the agent that found it correctly refused to weaken the assertion.</span></li>
+      <li><b>The admin console.</b> <span>Ten screens. Partner approval, user suspension, the audit trail, the security queue and the support queue no longer need psql.</span></li>
+      <li><b>The remaining features have screens.</b> <span>Split, gifts, city pass, quests, the planner and travel mode all render live rows. Support gained the intake the table never had, and the console gained the state machine.</span></li>
+      <li><b>The anomaly detector.</b> <span>Written, tested and wired to a button on the security console — see section 05.</span></li>
+      <li><b>CI and containers.</b> <span>Two GitHub workflows, a multi-stage Dockerfile, a compose stack and two deployment documents.</span></li>
+      <li><b>The two missing public pages.</b> <span><code>/developers</code> and <code>/pricing</code> were linked from the landing header, the landing footer and the notice on <code>/verify</code>, and every one of those links 404&rsquo;d. Both are now written from the routes themselves — the request shape, the outcome union, the rate limit and the error envelope are read off the code rather than described.</span></li>
+      <li><b>The delivery guard closed.</b> <span>SES and Twilio no longer pass the production boot check, and RESEND and MSG91 now require their credentials — see below.</span></li>
+      <li><b>The console sidebar.</b> <span><code>.navlink</code> is an anchor with no <code>display</code>, so inside a plain-block <code>.sidebar-group</code> the links flowed inline: measured at 1440px, &ldquo;Transactions&rdquo; ran from x=264 to x=370, past the 272px column and across the page heading. The group is a flex column now, and the block rule is scoped to the sidebar because the topbar genuinely is a row.</span></li>
+      <li><b>A native client, scoped to what needs one.</b> <span><code>mobile/</code> is an Expo app that signs in and shows the rotating pass — not a second copy of two dozen screens. It reuses <code>@onepass/pass/qr</code>, so there is still exactly one QR encoder in the repository. Verified as far as this environment allows: typecheck clean, the Android bundle exports, and the web bundle renders in a browser. No device build, no store submission, and NFC is named rather than stubbed.</span></li>
+    </ol>
+
+    <h3>What is still open, and what would bite first</h3>
+    <ol class="steps">
+      <li><b>The committed migrations are stale.</b> <span>74 tables in the schema, 35 in <code>drizzle/*.sql</code> — the 39 commerce and extension tables have no migration, so <code>npm run db:migrate</code> leaves an unusable database. <code>drizzle-kit push</code> is the working path and is what bootstrap and CI use. This wants fixing before anyone deploys from the migration folder.</span></li>
+      <li><b><code>drizzle-kit push</code> drops the row-level security policies.</b> <span>Observed, not theorised — a push removed all 34 policies and <code>isolation.sql</code> had to be re-applied. Bootstrap does this in the right order; anyone pushing by hand must remember to. It also cannot tell a renamed column from a dropped one, and stalls waiting for an answer <code>--force</code> does not give — <code>venue_maps.is_demo → is_sample</code> was applied as an explicit <code>ALTER</code>.</span></li>
+      <li><b>The Docker image has never been built.</b> <span>This environment cannot reach a container registry, so every <code>COPY</code>, the non-root switch and the healthcheck are unexecuted and the base image tag is unverified. The standalone bundle itself was built and run, and its health endpoint answered.</span></li>
+      <li><b>No ESLint configuration exists.</b> <span><code>npm run lint</code> drops into interactive setup and exits 1. Typecheck and both test suites are clean; lint is simply not set up.</span></li>
+      <li><b>The native shell is unproven.</b> <span>The mobile JS bundles and renders, but with no Android SDK and no Xcode here, <code>expo run:android</code> has never executed and NFC is not implemented. Nothing claims otherwise.</span></li>
+    </ol>
+
+    <div class="note">
+      <b>Two seeds were silently lying, and both are fixed.</b> <code>seedSampleData</code> and the
+      credential seed were idempotent <em>by identity</em> — one row per sample person, one
+      organization per slug — which quietly meant that anything written at creation was never
+      revisited. So changing the shared sample password updated the banner the seed prints and
+      nothing else, and every sample sign-in failed against a correct-looking password; and renaming
+      the sample issuer left the old name inside a signed credential that the public verification API
+      went on returning. Both seeds now correct what they find: the password is re-hashed to the
+      constant it advertises, the organization is renamed in place, and the credential is re-issued
+      rather than duplicated. A seed that drifts from the data it claims to produce is worse than no
+      seed, because it looks like it ran.
+    </div>
+
+    <div class="note warn">
+      <b>One thing to fix before any deployment.</b> The development seed uses a shared password across
+      every sample account and prints it to the console. That is correct for development and would be a
+      breach in production — <code>seedSampleData</code> refuses to run in production without an
+      explicit override, and it should stay that way.
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    ONEPASS · build report — every figure here was produced by running the system, not by
+    describing it.
+  </div>
+</footer>

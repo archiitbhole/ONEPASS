@@ -1,0 +1,141 @@
+/*
+ * discover surface: explore, deals, plan, city pass, quests, gifts, split,
+ * help, profile, settings, notifications. Built on the shared tokens and
+ * classes; nothing here redefines a shared class.
+ *
+ * Layout only — colour, type and material come from the system.
+ */
+
+/* ═══ settings ═════════════════════════════════════════════ */
+/* A setting is a sentence with a control at the end of it. On a phone the
+   control drops under the sentence rather than squeezing it to four words. */
+.setting-row { align-items: flex-start; gap: var(--s-4); flex-wrap: wrap; }
+.setting-row > .stack { min-width: min(100%, 240px); }
+
+/* The preference list: one row per category, a switch on the right. Hairlines
+   between rows rather than cards, because six cards in a column read as six
+   unrelated things. */
+.prefs { display: flex; flex-direction: column; }
+.prefs-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) 0; border-bottom: 1px solid var(--line);
+  min-height: 56px;
+}
+.prefs-row:last-child { border-bottom: 0; }
+.prefs-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.prefs-label { font-family: var(--font-display); font-weight: 620; font-size: 14.5px; cursor: pointer; }
+.prefs-row .switch { flex: none; }
+
+/* ═══ the inbox ════════════════════════════════════════════ */
+.inbox-bar { gap: var(--s-3); flex-wrap: wrap; }
+
+/* Each notice is a mark, a body and one control. Unread carries a jade rail on
+   the leading edge: a state that survives being read in greyscale, unlike a
+   tint on the title. */
+.inbox { display: flex; flex-direction: column; gap: var(--s-2); }
+.inbox-item {
+  position: relative; display: grid; gap: var(--s-3);
+  grid-template-columns: auto minmax(0, 1fr) auto; align-items: start;
+  padding: var(--s-4); padding-left: calc(var(--s-4) + 3px);
+  border-radius: var(--r-l); background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+  overflow: hidden;
+}
+.inbox-item::before {
+  content: ''; position: absolute; inset-inline-start: 0; inset-block: 0; width: 3px;
+  background: var(--accent);
+}
+.inbox-item[data-read='true'] { background: var(--raised); box-shadow: var(--ring); }
+.inbox-item[data-read='true']::before { background: transparent; }
+.inbox-mark {
+  display: grid; place-items: center; flex: none; width: 30px; height: 30px;
+  border-radius: var(--r-s); background: var(--sunken); color: var(--muted);
+}
+.inbox-mark-bad { background: var(--bad-soft); color: var(--bad); }
+.inbox-mark-accent { background: var(--accent-soft); color: var(--accent); }
+.inbox-mark-info { background: var(--info-soft); color: var(--info); }
+.inbox-mark-value { background: var(--value-soft); color: var(--value); }
+.inbox-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.inbox-title { font-family: var(--font-display); font-weight: 650; font-size: 15px; line-height: 1.3; }
+.inbox-item[data-read='true'] .inbox-title { font-weight: 560; color: var(--ink-2); }
+.inbox-side { flex: none; display: flex; align-items: center; }
+
+@media (max-width: 559px) {
+  /* The control goes under the text on a phone: a 44px button beside a
+     three-line body leaves the body about twelve characters wide. */
+  .inbox-item { grid-template-columns: auto minmax(0, 1fr); }
+  .inbox-side { grid-column: 2; justify-content: flex-start; }
+}
+
+/* ═══ explore ══════════════════════════════════════════════ */
+/* The filter rail: a search field that takes the room, a city select that does
+   not, and the buttons last. One line on a laptop, three on a phone. */
+.discover-filter { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: flex-end; }
+.discover-filter .field { margin: 0; min-width: min(100%, 200px); }
+.discover-filter .field.grow { flex: 1 1 260px; }
+.discover-filter-go { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+@media (max-width: 559px) {
+  .discover-filter-go { width: 100%; }
+  .discover-filter-go > .btn { flex: 1 1 auto; }
+}
+
+/* A venue is a place, so it is drawn as a poster with its facts printed under
+   it — not a row in a table. The grid gives each one room to be looked at. */
+.venues { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.venues > li { min-width: 0; list-style: none; }
+.venue-card {
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  border-radius: var(--r-l); background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+}
+.venue-card > .poster { border-radius: 0; }
+.venue-body { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); flex: 1 1 auto; }
+.venue-tags { overflow-wrap: anywhere; }
+.venue-quiet { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+
+/* The offers running at this venue, as rows you can press. A whole card that
+   linked to one of three offers would be a card that lies about which. */
+.venue-offers { display: flex; flex-direction: column; gap: 2px; margin-top: auto; list-style: none; padding: 0; }
+.venue-offer {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  min-height: 44px; padding: 8px 10px; border-radius: var(--r-s);
+  background: var(--sunken); color: var(--ink); text-decoration: none;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+.venue-offer:hover { text-decoration: none; background: var(--accent-soft); }
+.venue-offer-title {
+  font-family: var(--font-display); font-weight: 600; font-size: 13.5px; line-height: 1.3;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.venue-offer-meta { display: flex; align-items: center; gap: 8px; flex: none; }
+.venue-offer-meta .num { font-size: 14px; }
+
+/* ═══ deals ════════════════════════════════════════════════ */
+/* The card is a poster with a ticket's worth of facts under it. The padding
+   belongs to the body, so the poster can run to the card's own edges. */
+.deal-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.deal-poster { position: relative; }
+.deal-poster > .poster { border-radius: 0; }
+.deal-clock { position: absolute; top: 10px; right: 10px; }
+.deal-body { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-4); flex: 1 1 auto; }
+.deal-body > .h3 { line-height: 1.25; }
+.deal-note { color: var(--ink-2); }
+.deal-price { gap: var(--s-2); margin-top: var(--s-1); align-items: baseline; }
+.deal-price .num { font-size: 22px; }
+.deal-was { text-decoration: line-through; }
+.deal-body .push-end { padding-top: var(--s-2); }
+
+/* The price breakdown on a deal: every component of the charge on its own
+   line, including the ones that are nothing. Hairlines, not a table — it is a
+   receipt being read before the fact. */
+.breakdown { display: flex; flex-direction: column; }
+.breakdown > div {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
+  padding: 7px 0; border-bottom: 1px solid var(--line);
+}
+.breakdown > div:last-child { border-bottom: 0; }
+.breakdown dt { font-size: 13.5px; color: var(--muted); }
+.breakdown dd { font-size: 13.5px; font-variant-numeric: tabular-nums; text-align: right; }
+.breakdown .breakdown-total { border-top: 1px solid var(--rule); border-bottom: 0; padding-top: 10px; }
+.breakdown-total dt { color: var(--ink); font-weight: 600; }
+.breakdown-total dd { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); }

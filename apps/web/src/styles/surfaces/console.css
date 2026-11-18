@@ -1,0 +1,136 @@
+/*
+ * console surface: styles used only by the console screens.
+ * Built on the tokens and classes in the parent directory; nothing here
+ * redefines a shared class.
+ */
+
+/* ═══ charts ═══════════════════════════════════════════════
+   A drawing is only allowed to say something a person can check, so every chart
+   here carries its scale as drawn rules with the figures beside them, and the
+   numbers behind it sit one disclosure away. */
+.chart { display: flex; flex-direction: column; gap: var(--s-2); margin: 0; }
+/* The scale is text beside the plot rather than inside the SVG: the viewBox is
+   stretched to the card's width, and text inside it would stretch with it. */
+.chart-plot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-3); align-items: stretch; }
+.chart-scale {
+  display: flex; flex-direction: column; justify-content: space-between; text-align: right;
+  font-size: 10.5px; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap;
+  padding-block: 2px;
+}
+.chart-svg { display: block; width: 100%; overflow: visible; }
+.chart-rule { stroke: var(--line); stroke-width: 1; }
+.chart-area { fill: var(--accent-soft); }
+.chart-line { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.chart-point { fill: var(--accent); }
+.chart-caption {
+  display: flex; justify-content: space-between; gap: var(--s-3);
+  font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+
+/* ═══ capacity ═════════════════════════════════════════════
+   Three quantities that mean different things: sold is money, held is a checkout
+   in flight that may still lapse, available is what can be sold today. */
+.capacity-bar {
+  display: flex; height: 10px; min-width: 120px; overflow: hidden;
+  border-radius: var(--r-full); background: var(--sunken); border: 1px solid var(--line);
+}
+.capacity-sold { background: var(--ok); }
+.capacity-held { background: var(--warn); }
+.capacity-legend { gap: var(--s-4); }
+.capacity-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.capacity-swatch {
+  width: 9px; height: 9px; border-radius: 3px; display: inline-block;
+  background: var(--sunken); box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ═══ console furniture ════════════════════════════════════ */
+.console-head-text { flex: 1 1 min(100%, 30ch); min-width: 0; }
+.console-head-text .eyebrow + h1 { margin-top: 4px; }
+
+/* The tenant switcher. Never rendered for a single-tenant actor — a control
+   with one option is furniture, not a control. */
+.org-switcher { display: flex; align-items: center; gap: var(--s-2); }
+.org-switcher .select { min-height: 36px; font-size: 13px; width: auto; max-width: 240px; }
+
+/* A dense strip of label/value pairs above a table. */
+.summary-strip { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); align-items: flex-start; }
+/* The display face with tabular figures, not the mono one. These are quantities
+   and amounts — "₹18,39,938", "64 of 65" — and setting them in the code face
+   made a summary of a day's trading read like terminal output. A reference in
+   here still carries `.mono` of its own. */
+.summary-value {
+  font-family: var(--font-display); font-size: 16px; font-weight: 650; margin-top: 2px;
+  font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.01em;
+}
+.summary-value .mono { font-family: var(--font-mono); font-size: 14px; }
+
+/* The reminder that a booking reference is not a customer. It sits on the page
+   rather than in a doc because it is the rule a partner most readily assumes
+   away. */
+.consent-note { display: flex; gap: var(--s-2); align-items: baseline; margin-top: var(--s-3); }
+.consent-note > span { max-width: 80ch; }
+
+/* ═══ the counter ══════════════════════════════════════════
+   A till, not a form. Two things follow from that and shape everything here:
+   the operator is standing up, often one-handed, with somebody waiting; and the
+   basket is the part that changes, so it gets the room and the rest gets out of
+   its way.
+
+   The line grid is named rather than numbered — `grid-template-areas` means the
+   phone layout is a different picture of the same fields instead of a different
+   set of rules about which column each one lands in. */
+.counter { display: flex; flex-direction: column; gap: var(--s-4); }
+
+/* Who the receipt is about to be written for. A register of its own, because
+   getting this wrong is the one mistake here that cannot be undone quietly. */
+.counter-buyer {
+  display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5);
+  align-items: flex-start; justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line); border-radius: var(--r-m);
+  background: var(--sunken);
+}
+.counter-buyer > div { min-width: 0; }
+.counter-buyer .h3 { margin-top: 2px; }
+.counter-buyer-note { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; max-width: 42ch; }
+
+.counter-basket { border: 0; padding: 0; margin: 0; min-width: 0; }
+.counter-basket > legend { padding: 0; }
+
+/* One item. Seven fields that would be an unreadable row at any width below a
+   desk monitor, so they are laid out as a small block that reflows rather than
+   a table that scrolls. */
+.counter-line {
+  display: grid; gap: var(--s-2) var(--s-3); min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  padding: var(--s-3); border: 1px solid var(--line-2); border-radius: var(--r-m);
+  background: var(--paper);
+}
+.counter-line .field { min-width: 0; }
+.counter-line .label { font-size: 12px; }
+.counter-line-what { grid-column: 1 / -1; }
+.counter-line-flags {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4); align-items: center; justify-content: space-between;
+}
+.counter-field-wide { grid-column: 1 / -1; }
+
+/* The figures, once the receipt service has produced them. Set apart from the
+   basket on purpose: above this line the operator is typing, below it they are
+   reading what the customer will be charged. */
+.counter-review {
+  display: flex; flex-direction: column; gap: var(--s-3); min-width: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--accent); border-radius: var(--r-m);
+  background: color-mix(in srgb, var(--accent) 5%, var(--paper));
+}
+.counter-review .table { margin: 0; }
+.counter-review .small { max-width: 72ch; }
+.counter-total th, .counter-total td {
+  font-weight: 700; font-size: 17px;
+  border-top: 2px solid var(--ink); padding-top: 10px;
+}
+
+/* A short procedure, where the order is the content. */
+.numbered { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: var(--s-2); }
+.numbered li { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }

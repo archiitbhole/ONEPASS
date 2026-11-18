@@ -1,0 +1,540 @@
+/*
+ * travel surface: styles used only by the travel screens.
+ * Built on the tokens and classes in the parent directory; nothing here
+ * redefines a shared class.
+ *
+ * These used to be four `PAGE_CSS` strings injected by the pages themselves,
+ * which meant the same two hundred lines of CSS were re-sent inside every
+ * travel HTML document and could drift between the three screens that shared
+ * a class name. They are one sheet now, cached like the rest of the system.
+ *
+ * The `op-` prefix is kept on the class names the browser suite reaches for
+ * (`.op-flight`, `.op-source`, `.op-price-row`, `.op-offer`): a class name is
+ * a contract, and renaming one to tidy it costs more than it is worth.
+ */
+
+/* ═══ the stage ════════════════════════════════════════════
+   The travel header is an immersive field — night ink and engraved waves —
+   because this is where a journey starts and the search is the one thing on
+   the screen. `.immersive` supplies the material; this supplies the shape. */
+.travel-stage {
+  border-radius: var(--r-2xl);
+  padding: clamp(20px, 3vw, 40px);
+}
+.travel-stage > * { position: relative; }
+.travel-stage-grid { display: grid; gap: var(--s-5); align-items: start; }
+@media (min-width: 1000px) {
+  .travel-stage-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: var(--s-7); }
+}
+.travel-stage-say { display: flex; flex-direction: column; gap: var(--s-3); max-width: 46ch; }
+.travel-stage-say h1 { margin: 0; }
+/* The form sits on its own sheet inside the stage so the fields keep the
+   contrast they need — a text input drawn directly on the field would be a
+   dark control on a dark ground. */
+.travel-stage-form {
+  border-radius: var(--r-xl);
+  padding: clamp(16px, 2vw, 24px);
+  background: var(--surface);
+  box-shadow: var(--ring), var(--e-3);
+}
+.travel-stage-note { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
+
+/* A quieter band for the pages below the hub — the same material, less of it. */
+.travel-band {
+  border-radius: var(--r-xl);
+  padding: clamp(18px, 2.4vw, 28px);
+}
+.travel-band > * { position: relative; }
+
+/* ═══ the search form ══════════════════════════════════════ */
+/* `auto-fit` against a real minimum rather than a column count at a viewport
+   breakpoint. The form sits inside the stage panel, which is about 540px wide
+   on a 1440px screen — a media query asking about the viewport gave it four
+   columns of 110px there and truncated the native date control to "10/07/2".
+   The minimum is the width a `type=date` field needs to show a whole date. */
+.op-search-grid {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
+}
+/* The traveller counts and the cabin. Four controls that hold a single digit
+   or one word, so they get a much smaller minimum than the dates do and sit on
+   one line inside the same panel. */
+.op-search-grid-tight { grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr)); }
+/* The cabin select is the one control in that row holding a word rather than a
+   digit, and "Premium economy" will not fit whatever is done. Tightening the
+   chevron gutter buys it the two characters that make "Economy" whole; the
+   longer names are read from the open list, as they are in any select. */
+.op-search-grid-tight .select { padding-right: 30px; background-position: right 10px center; }
+
+.op-trip-kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: var(--sunken);
+  width: fit-content;
+  max-width: 100%;
+}
+.op-trip-option { position: relative; display: inline-flex; }
+/* Covers the chip exactly: invisible, full-size hit area, still focusable.
+   `.sr-only` would have made this a 1px control — correct for a screen reader
+   and a 1×1 target for anybody using a pointer or being measured against
+   WCAG 2.5.8. */
+.op-trip-option > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.op-trip-option > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-full);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 640;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+/* The checked radio is visually hidden but still focusable, so the ring has to
+   be drawn on the label it controls or keyboard users see nothing move. */
+.op-trip-option > input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.op-trip-option > input:checked + span { background: var(--accent); color: var(--accent-ink); }
+
+.op-check { display: inline-flex; align-items: center; gap: var(--s-2); font-size: 14px; min-height: 24px; }
+/* A default checkbox is 13px. WCAG 2.5.8 wants 24, and a tick somebody misses
+   is a filter they did not mean to set. */
+.op-check > input[type='checkbox'] { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); }
+.input-inline { width: auto; min-width: 128px; }
+
+/* The return date only matters for a return trip. Hidden with :has() where it
+   is supported and simply left visible where it is not — an always-visible
+   field is a small oddity, a hidden required field is a form nobody can
+   submit. */
+/* Named, not positional. This used to say `.op-search-grid > :nth-child(4)`,
+   which matched the fourth child of *both* grids — so choosing a one-way trip
+   hid the cabin selector along with the return date. A rule about one field
+   addresses that field. */
+.op-search:has(input[name='trip'][value='ONE_WAY']:checked) .op-field-return,
+.op-search:has(input[name='trip'][value='MULTI_CITY']:checked) .op-field-return {
+  display: none;
+}
+
+/* ═══ the drawn route ══════════════════════════════════════
+   Two airports and the line between them, projected from the coordinates in
+   the database. No tiles, no imagery, no request to anybody: this is a
+   diagram of a distance, and it says so. */
+/* `max-height` so a north–south route does not become a 500px-tall column on a
+   phone: the viewBox keeps the bearing honest, and `preserveAspectRatio` (the
+   default) letterboxes the drawing inside whatever height is left. */
+.route-arc { display: block; width: 100%; height: auto; max-height: 230px; color: var(--accent); }
+.route-arc-path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.route-arc-ghost { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 2 3; }
+.route-arc-node { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+.route-arc-label {
+  font-family: var(--font-display);
+  font-stretch: var(--w-condensed);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  fill: var(--ink-2);
+}
+
+/* ═══ where the fares came from ════════════════════════════
+   One row per source, always, including the ones that were never asked. A
+   comparison product that drops a failing supplier is one that cannot be
+   trusted, so absence is drawn as loudly as presence. */
+.op-sources { display: flex; flex-direction: column; gap: var(--s-2); }
+.op-source {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-m);
+  background: var(--sunken);
+  box-shadow: var(--ring);
+  min-height: 24px;
+}
+.op-source-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 6px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--muted);
+}
+.op-source-ok .op-source-dot { background: var(--ok); }
+.op-source-bad .op-source-dot { background: var(--warn); }
+.op-source-off .op-source-dot { background: var(--line-2); box-shadow: inset 0 0 0 1px var(--muted); }
+.op-source-name { font-family: var(--font-display); font-weight: 650; font-size: 14px; }
+.op-source-said { font-size: 13px; color: var(--ink-2); }
+.op-source-req { margin-inline-start: auto; text-align: end; flex: 0 0 auto; }
+
+/* ═══ the filter rail ══════════════════════════════════════
+   Every control is a link carrying the whole query, so a filtered view has its
+   own URL and costs no provider call. */
+.op-filters { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); align-items: center; }
+.op-filter-group { display: flex; flex-wrap: wrap; gap: var(--s-1); align-items: center; }
+.op-filter-legend {
+  font-family: var(--font-display);
+  font-stretch: var(--w-condensed);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-inline-end: var(--s-1);
+}
+.op-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  box-shadow: var(--ring);
+  font-size: 13px;
+  font-weight: 620;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: box-shadow var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.op-filter:hover { text-decoration: none; box-shadow: var(--ring-accent); color: var(--ink); }
+.op-filter[aria-current='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: none;
+}
+.op-filter-count { font-variant-numeric: tabular-nums; opacity: 0.72; }
+
+/* ═══ one fare ═════════════════════════════════════════════
+   Four things decide a flight — when it leaves, when it lands, how long it
+   takes and what it costs — so those four carry the type and everything else
+   is subordinate. The journey reads left to right because that is the shape
+   of the thing being described. */
+.op-flight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+  transition: box-shadow var(--t-fast) var(--ease-out);
+}
+.op-flight:hover { box-shadow: var(--ring-accent), var(--e-2); }
+.op-flight-main {
+  display: grid;
+  gap: var(--s-4);
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+.op-flight-carrier { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.op-flight-code {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: var(--r-s);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 720;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.op-flight-airline { font-family: var(--font-display); font-weight: 650; font-size: 14px; }
+.op-flight-times {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-2);
+}
+.op-flight-end { text-align: center; min-width: 0; }
+.op-flight-time {
+  font-family: var(--font-display);
+  font-stretch: var(--w-wide);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: clamp(19px, 1vw + 16px, 23px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+.op-flight-plus { font-size: 11px; font-weight: 700; color: var(--warn); margin-inline-start: 2px; }
+.op-flight-iata {
+  font-family: var(--font-display);
+  font-stretch: var(--w-condensed);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.op-flight-mid { text-align: center; min-width: 0; }
+.op-flight-line { display: flex; align-items: center; gap: var(--s-1); margin-block: 5px; }
+.op-flight-line::before,
+.op-flight-line::after { content: ''; flex: 1 1 auto; height: 1px; background: var(--line-2); }
+.op-flight-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+.op-flight-stop { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); flex: 0 0 auto; }
+.op-flight-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.op-flight-fare {
+  font-family: var(--font-display);
+  font-stretch: var(--w-wide);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: clamp(22px, 1.4vw + 17px, 28px);
+  font-weight: 760;
+  line-height: 1.05;
+}
+.op-flight-price .btn { margin-block-start: var(--s-2); }
+.op-flight-tags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+/* The sample band. A fare that cannot be flown is marked on the object
+   itself, not only in a chip somebody may scroll past. */
+.op-flight[data-sample='true'] { box-shadow: var(--edge-light), inset 0 0 0 1px var(--warn), var(--e-0); }
+.op-flight-sample {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: calc(var(--s-4) * -1) calc(var(--s-4) * -1) 0;
+  padding: 6px var(--s-4);
+  border-radius: var(--r-l) var(--r-l) 0 0;
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-stretch: var(--w-condensed);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 760px) {
+  .op-flight-main { grid-template-columns: minmax(130px, 1fr) minmax(0, 2.2fr) minmax(128px, auto); }
+  .op-flight-price { align-items: flex-end; text-align: end; }
+}
+
+/* ═══ a fare in full ═══════════════════════════════════════ */
+.op-leg { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-3); padding: var(--s-3) 0; }
+.op-leg + .op-leg { border-top: 1px dashed var(--line); }
+.op-leg-rail { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); padding-block: var(--s-1); }
+.op-leg-node { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--accent); flex: 0 0 auto; }
+.op-leg-track { flex: 1 1 auto; width: 2px; background: var(--line-2); min-height: 28px; }
+.op-leg-time { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 700; }
+.op-connection {
+  margin: var(--s-1) 0 var(--s-1) 26px;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-m);
+  background: var(--warn-soft);
+  font-size: 13px;
+}
+
+/* The price, in parts. One row per named charge, the total last — the
+   browser suite adds these up and checks the total against them. */
+.op-price-row { display: flex; justify-content: space-between; gap: var(--s-3); padding: 6px 0; }
+.op-price-row + .op-price-row { border-top: 1px dashed var(--line); }
+.op-price-total { font-family: var(--font-display); font-weight: 760; font-size: 17px; }
+.op-discount { color: var(--ok); }
+
+/* ═══ booking ══════════════════════════════════════════════ */
+.op-pax { padding: var(--s-4); border-radius: var(--r-l); background: var(--sunken); box-shadow: var(--ring); }
+.op-pax + .op-pax { margin-block-start: var(--s-3); }
+.op-pax-grid { display: grid; gap: var(--s-3); grid-template-columns: 1fr; }
+@media (min-width: 620px) { .op-pax-grid { grid-template-columns: 1fr 1fr; } }
+
+.op-offer {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-3);
+  border-radius: var(--r-m);
+  background: var(--surface);
+  box-shadow: var(--ring);
+  cursor: pointer;
+}
+.op-offer:has(input:checked) { box-shadow: var(--ring-accent), var(--e-1); }
+.op-offer > input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; accent-color: var(--accent); }
+.op-offer-off { opacity: 0.72; cursor: default; }
+.op-offers { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* The two figures in a price change, side by side. A customer deciding
+   between them should not have to hold one in their head. */
+.op-was-now { display: grid; gap: var(--s-3); grid-template-columns: 1fr; }
+@media (min-width: 520px) { .op-was-now { grid-template-columns: 1fr 1fr; } }
+.op-was-now > div { padding: var(--s-3); border-radius: var(--r-m); background: var(--sunken); box-shadow: var(--ring); }
+.op-was-now .figure { font-family: var(--font-display); font-stretch: var(--w-wide); font-size: 24px; font-weight: 760; }
+
+/* ═══ trips ════════════════════════════════════════════════ */
+.op-trip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+  color: var(--ink);
+  text-decoration: none;
+  min-height: 24px;
+  transition: box-shadow var(--t-fast) var(--ease-out);
+}
+.op-trip:hover { text-decoration: none; box-shadow: var(--ring-accent), var(--e-2); }
+.op-trip-bad { box-shadow: inset 0 0 0 1px var(--bad), var(--e-1); }
+.op-trip-route { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+
+/* ═══ the doors out of travel ══════════════════════════════
+   Five places, each with what is behind it right now, so the grid is a status
+   board rather than a row of icons. */
+.travel-doors { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr)); }
+.travel-door {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-4);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
+}
+.travel-door:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--ring-accent), var(--e-2); }
+@media (hover: none) { .travel-door:hover { transform: none; } }
+.travel-door-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-s);
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.travel-door-label { font-family: var(--font-display); font-weight: 650; font-size: 14.5px; }
+.travel-door-note { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+/* ═══ AirIndex ═════════════════════════════════════════════ */
+.op-route-picker { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-2); }
+.op-picker-field { display: flex; flex-direction: column; gap: var(--s-1); min-width: 112px; }
+.op-picker-field .label { font-size: 12px; font-weight: 650; color: var(--muted); }
+
+/* The index, as a figure on a scale. The scale is the point: 118 means
+   nothing without 100 beside it. */
+.op-index-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-3); }
+.op-index-number {
+  font-family: var(--font-display);
+  font-stretch: var(--w-wide);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: clamp(44px, 5vw + 20px, 68px);
+  font-weight: 800;
+  line-height: 1;
+}
+.op-index-scale { display: block; width: 100%; height: auto; }
+.op-index-track { fill: var(--sunken); }
+.op-index-band { fill: color-mix(in srgb, var(--ok) 22%, transparent); }
+.op-index-tick { stroke: var(--line-2); stroke-width: 0.5; }
+.op-index-mark { stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.op-index-tick-label {
+  font-family: var(--font-display);
+  font-stretch: var(--w-condensed);
+  font-size: 5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  fill: var(--muted);
+}
+
+.op-chart { margin: 0; }
+.op-chart svg { width: 100%; height: 140px; display: block; }
+.op-chart-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+.op-chart-area { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: none; }
+.op-chart-grid { stroke: var(--line); stroke-width: 1; }
+.op-chart-point { fill: var(--accent); }
+.op-chart-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  margin-block-start: 6px;
+}
+
+/* A bar per band — lead time, an airline's median — drawn from the rows, with
+   the figure written beside it. Never a bar without its number. */
+.op-bars { display: flex; flex-direction: column; gap: var(--s-2); }
+.op-bar-row { display: grid; grid-template-columns: minmax(84px, 26%) minmax(0, 1fr) auto; gap: var(--s-3); align-items: center; }
+.op-bar-label { font-size: 13px; color: var(--ink-2); }
+.op-bar {
+  position: relative;
+  height: 10px;
+  border-radius: var(--r-full);
+  background: var(--sunken);
+  box-shadow: var(--ring);
+  overflow: hidden;
+}
+.op-bar-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+.op-bar-fill[data-thin='true'] { background: repeating-linear-gradient(135deg, var(--muted) 0 3px, transparent 3px 6px); }
+.op-bar-figure { font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 650; white-space: nowrap; }
+
+/* The formula, set as the thing it is. */
+.op-formula {
+  padding: var(--s-4);
+  border-radius: var(--r-m);
+  background: var(--sunken);
+  box-shadow: var(--ring);
+  font-family: var(--mono);
+  font-size: 14px;
+  overflow-x: auto;
+}
+.op-prose p + p { margin-block-start: var(--s-3); }
+.op-prose h3 { margin-block-start: var(--s-4); }
+
+/* ═══ offers ═══════════════════════════════════════════════ */
+.op-offer-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  box-shadow: var(--edge-light), var(--ring);
+}
+.op-offer-card-past { opacity: 0.72; }
+.op-offer-headline { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.op-offer-grid { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
+
+/* ═══ the booking reference, at the size an airport needs ══ */
+.op-pnr {
+  font-family: var(--mono);
+  font-size: clamp(22px, 3vw + 12px, 30px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  word-break: break-all;
+}
+
+/* ═══ a trip's legs ════════════════════════════════════════ */
+/* Departure clock on the left, everything about the leg on the right. Dashed
+   rules between legs rather than solid: a connection is a break in a journey,
+   not the end of one. */
+.op-leg-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-3); padding: var(--s-3) 0; }
+.op-leg-row + .op-leg-row { border-top: 1px dashed var(--line); }
+.op-leg-clock { font-variant-numeric: tabular-nums; font-weight: 650; font-family: var(--font-display); }

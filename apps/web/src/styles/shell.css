@@ -1,0 +1,293 @@
+/*
+ * Shells: the frame each audience works inside.
+ *
+ * Consumer is a phone first — a floating dock within thumb reach, the pass at
+ * its centre — that becomes a spacious topbar on a desktop. Partner is a
+ * desktop console with a rail of sections. Control is the same console in the
+ * colder register, with a night-ink rail in both themes so nobody mistakes the
+ * platform's operations centre for a storefront.
+ */
+
+/* ═══ the vellum bar, shared ═══════════════════════════════ */
+.appbar, .topbar {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  border-bottom: 1px solid var(--glass-line);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.topbar-inner, .appbar-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); height: 62px; }
+@media (min-width: 900px) { .topbar-inner, .appbar-inner { height: 68px; } }
+
+.navlinks { display: flex; align-items: center; gap: 2px; }
+.navlink {
+  position: relative; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 38px; padding: 0 13px; border-radius: var(--r-m);
+  font-family: var(--font-display); font-size: 14px; font-weight: 580; color: var(--muted); text-decoration: none;
+  transition: color var(--t-fast) var(--ease-out), background-color var(--t-fast) var(--ease-out);
+}
+.navlink:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.navlink[aria-current='page'] { color: var(--ink); }
+/* The current destination sits on an ink bead. It carries a view-transition
+   name, so moving between destinations slides the bead rather than blinking. */
+.navlink > .bead {
+  position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--surface); box-shadow: var(--edge-light), var(--e-1), inset 0 0 0 1px var(--line);
+  view-transition-name: nav-bead;
+}
+.navlink { isolation: isolate; }
+@media (max-width: 640px) { .navlink-secondary { display: none; } }
+
+/* ═══ consumer ═════════════════════════════════════════════ */
+.app-main { flex: 1 1 auto; padding-block: var(--s-5) var(--s-7); }
+@media (min-width: 900px) { .app-main { padding-block: var(--s-6) var(--s-8); } }
+.appnav { display: none; }
+@media (min-width: 900px) { .appnav { display: flex; } }
+.appbar-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
+
+/* An icon control in the bar — the bell, the avatar. 44px target. */
+.bar-button {
+  position: relative; display: inline-grid; place-items: center;
+  width: 44px; height: 44px; border-radius: var(--r-m);
+  color: var(--ink-2); background: transparent; border: 0; cursor: pointer; text-decoration: none;
+  transition: background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.bar-button:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.bar-button[aria-current='page'] { color: var(--accent); }
+.bar-count {
+  position: absolute; top: 6px; right: 5px; min-width: 18px; height: 18px; padding: 0 5px;
+  display: grid; place-items: center; border-radius: var(--r-full);
+  background: var(--bad); color: var(--bad-ink); border: 2px solid var(--ground);
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 750; line-height: 1;
+}
+.avatar {
+  --mono-size: 34px;
+}
+
+/* The dock: a floating vellum capsule above the home indicator, five places,
+   the pass raised at its centre as a small card — tap it and the card opens. */
+.dock {
+  position: fixed; z-index: var(--z-nav);
+  left: max(10px, env(safe-area-inset-left, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: center;
+  max-width: 520px; margin-inline: auto;
+  padding: 6px;
+  border-radius: 22px;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: inset 0 0 0 1px var(--glass-line), var(--e-4);
+}
+.dock-item {
+  position: relative; isolation: isolate;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 54px; padding: 6px 2px; border-radius: 16px;
+  color: var(--muted); text-decoration: none;
+  font-family: var(--font-display); font-size: 11px; font-weight: 620; letter-spacing: 0.01em;
+  transition: color var(--t-fast) var(--ease-out);
+}
+.dock-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock-item:hover { color: var(--ink); }
+.dock-item[aria-current='page'] { color: var(--accent); }
+.dock-item > .bead {
+  position: absolute; inset: 2px 4px; z-index: -1; border-radius: 14px;
+  background: var(--accent-soft);
+  view-transition-name: dock-bead;
+}
+.dock-item svg { transition: transform var(--t-base) var(--ease-spring); }
+.dock-item[aria-current='page'] svg { transform: translateY(-1px) scale(1.06); }
+/* The pass: a miniature of the card, lifted out of the dock. */
+.dock-pass { padding-top: 0; }
+.dock-pass-card {
+  position: relative; overflow: hidden;
+  width: 46px; height: 30px; margin-top: -16px; border-radius: 6px;
+  background: linear-gradient(135deg, var(--stock-jade-b), var(--stock-jade-a));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 14px -4px rgba(4, 32, 26, 0.55);
+  transition: transform var(--t-base) var(--ease-spring);
+  view-transition-name: var(--dock-pass-vt, none);
+}
+.dock-pass-card::after {
+  content: ''; position: absolute; right: -8px; top: -8px; width: 32px; height: 32px;
+  background: #d6f2e4; opacity: 0.35;
+  -webkit-mask: url(/patterns/rosette.svg) center / contain no-repeat; mask: url(/patterns/rosette.svg) center / contain no-repeat;
+}
+.dock-pass-card i {
+  position: absolute; left: 6px; top: 7px; width: 9px; height: 7px; border-radius: 2px;
+  background: linear-gradient(135deg, #f3d38a, #c79a3e);
+}
+.dock-pass:hover .dock-pass-card { transform: translateY(-2px) rotate(-3deg); }
+.dock-pass > .bead { display: none; }
+.dock-spacer { height: calc(92px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 900px) { .dock, .dock-spacer { display: none; } }
+:root[data-tier='lite'] .dock { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface); }
+
+/* ═══ consoles: partner and control ════════════════════════ */
+.console-shell { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
+@media (min-width: 1024px) {
+  /* The rail is sticky and one viewport tall; its colour is painted on the
+     shell's first column so it runs the full height of a long page. */
+  .console-shell {
+    grid-template-columns: 252px minmax(0, 1fr);
+    background: linear-gradient(to right, var(--rail-bg) 0 251px, var(--rail-line) 251px 252px, transparent 252px);
+  }
+}
+.console-shell { --rail-bg: color-mix(in srgb, var(--sunken) 70%, var(--ground)); --rail-line: var(--rule); }
+[data-surface='control'].console-shell { --rail-bg: #0b1513; --rail-line: #1c2926; }
+.console-rail {
+  display: none; position: sticky; top: 0; height: 100dvh; overflow-y: auto;
+  flex-direction: column; gap: var(--s-4);
+  padding: 18px 14px 20px;
+  background: var(--rail-bg);
+}
+@media (min-width: 1024px) { .console-rail { display: flex; } }
+.console-rail .brand { padding: 4px 8px 10px; }
+.console-org {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--r-m);
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--edge-light), var(--e-0);
+}
+.console-org-name { font-family: var(--font-display); font-weight: 680; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+.console-nav { display: flex; flex-direction: column; gap: 14px; }
+.console-nav-group { display: flex; flex-direction: column; gap: 1px; }
+.console-nav-head {
+  padding: 0 10px 4px;
+  font-family: var(--font-display); font-stretch: var(--w-condensed);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+}
+.console-nav a, .console-nav .console-nav-off {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  min-height: 36px; padding: 0 10px; border-radius: var(--r-s);
+  font-family: var(--font-display); font-size: 14px; font-weight: 560; color: var(--ink-2); text-decoration: none;
+}
+.console-nav a:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
+.console-nav a[aria-current='page'] { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: var(--edge-light), inset 0 0 0 1px var(--line); }
+.console-nav a[aria-current='page']::before { content: ''; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+.console-nav .console-nav-off { color: color-mix(in srgb, var(--muted) 80%, transparent); cursor: not-allowed; }
+.console-nav svg { flex: none; opacity: 0.8; }
+.console-rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px 10px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+
+.console-body { display: flex; flex-direction: column; min-width: 0; }
+.console-bar {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  min-height: 60px; padding: env(safe-area-inset-top, 0px) var(--gutter) 0;
+  background: var(--glass-bg); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4); backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border-bottom: 1px solid var(--glass-line);
+}
+.console-main { flex: 1 1 auto; width: 100%; max-width: 1320px; padding: var(--s-5) var(--gutter) var(--s-8); }
+@media (min-width: 1024px) { .console-main { padding-top: var(--s-6); } .console-bar .console-bar-brand { display: none; } }
+.console-crumb { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13.5px; color: var(--muted); }
+.console-crumb strong { color: var(--ink); font-family: var(--font-display); font-weight: 650; }
+
+/* On a phone and tablet the rail becomes a disclosure: a real <details>, so it
+   opens without JavaScript and closes with the keyboard. */
+.console-menu { position: relative; }
+@media (min-width: 1024px) { .console-menu { display: none; } }
+.console-menu > summary {
+  list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
+  border: 1px solid var(--line-2); border-radius: var(--r-m); background: var(--surface);
+  font-family: var(--font-display); font-size: 14px; font-weight: 620; cursor: pointer;
+}
+.console-menu > summary::-webkit-details-marker { display: none; }
+.console-menu[open] > .console-menu-panel { display: block; }
+.console-menu-panel {
+  display: none; position: absolute; left: 0; top: calc(100% + 8px); z-index: var(--z-overlay);
+  width: min(86vw, 320px); max-height: 72dvh; overflow-y: auto; padding: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: var(--e-5);
+}
+.console-menu-panel .console-nav a[aria-current='page']::before { left: -14px; }
+
+/* Control: the platform's operations centre. The rail is night ink in both
+   themes and the accent cools to indigo — unmistakably not a storefront. */
+[data-surface='control'] .console-rail {
+  --ink: #e6eeeb; --ink-2: #b9c6c2; --muted: #8e9f9a; --line: #24322e; --rule: rgba(255, 255, 255, 0.08);
+  --surface: #16221f; --accent: #9eb3e6; --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: #0b1513; color: var(--ink); border-right-color: #1c2926;
+}
+[data-surface='control'] .console-rail .brand { color: var(--ink); }
+[data-surface='control'] .console-rail .brand-tail { color: #9eb3e6; }
+[data-surface='control'] { --accent-soft: color-mix(in srgb, var(--info-soft) 100%, transparent); }
+
+/* ═══ auth ═════════════════════════════════════════════════ */
+.auth-shell { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
+@media (min-width: 980px) { .auth-shell { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); } }
+.auth-side { display: flex; flex-direction: column; padding: calc(18px + env(safe-area-inset-top, 0px)) var(--gutter) 28px; }
+.auth-form { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding-block: var(--s-6); }
+.auth-form > * { width: 100%; max-width: 420px; }
+.auth-foot { font-size: 13px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.auth-scene { display: none; }
+@media (min-width: 980px) { .auth-scene { display: block; } }
+
+/* ═══ public ═══════════════════════════════════════════════ */
+.site-header { position: sticky; top: 0; z-index: var(--z-sticky); }
+.site-footer { border-top: 1px solid var(--rule); padding-block: var(--s-6) calc(var(--s-6) + env(safe-area-inset-bottom, 0px)); margin-top: auto; }
+.site-footer-grid { display: grid; gap: var(--s-5); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .site-footer-grid { grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); } }
+.site-footer h2 { font-family: var(--font-display); font-stretch: var(--w-condensed); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.site-footer ul { display: flex; flex-direction: column; gap: 2px; }
+.site-footer a { color: var(--ink-2); text-decoration: none; display: inline-flex; min-height: 28px; align-items: center; font-size: 14px; }
+.site-footer a:hover { color: var(--accent); }
+
+/* ═══ legacy sidebar layout (still used by a few docs views) ═ */
+.sidebar-layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 32px; align-items: start; }
+.sidebar { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-group { display: flex; flex-direction: column; gap: 2px; margin-top: 16px; }
+.sidebar .navlink { display: flex; }
+@media (max-width: 860px) {
+  .sidebar-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .sidebar { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; gap: 6px; }
+  .sidebar-group { flex-direction: row; gap: 6px; margin-top: 0; }
+  .sidebar .navlink { white-space: nowrap; }
+  .sidebar .eyebrow { display: none; }
+}
+
+/* The pass has the dock on a phone; on a desktop it is a control in the bar. */
+.appbar-pass { display: none; }
+@media (min-width: 900px) { .appbar-pass { display: inline-flex; } }
+.bar-avatar { width: 44px; }
+.bar-avatar .monogram { border-radius: var(--r-full); }
+.brand-name { font-size: 15px; }
+@media (max-width: 380px) { .appbar .brand-name { display: none; } }
+
+.console-foot { padding: var(--s-5) var(--gutter) calc(var(--s-5) + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); max-width: 1320px; }
+.console-foot p { max-width: 90ch; }
+.console-bar-brand { display: inline-flex; min-width: 0; }
+@media (max-width: 520px) { .console-bar-brand .brand-sub { display: none; } }
+.console-user { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.console-user-name { font-size: 13.5px; font-weight: 560; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .console-user-name { display: none; } }
+
+.auth-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
+  box-shadow: var(--edge-light), var(--e-3); padding: clamp(22px, 5vw, 36px);
+}
+@media (max-width: 480px) { .auth-card { background: transparent; border: 0; box-shadow: none; padding: 4px 0; } }
+.auth-foot a { color: var(--muted); text-decoration: none; min-height: 24px; display: inline-flex; align-items: center; }
+.auth-foot a:hover { color: var(--ink); }
+.auth-scene { position: relative; overflow: hidden; }
+.auth-scene-inner {
+  position: sticky; top: 0; min-height: 100dvh;
+  display: flex; flex-direction: column; justify-content: center; gap: 40px;
+  padding: clamp(40px, 6vw, 88px);
+}
+.auth-scene-pass { width: min(420px, 100%); transform: rotate(-4deg); filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.45)); }
+.auth-scene-points { display: flex; flex-direction: column; gap: 14px; max-width: 420px; color: var(--ink-2); font-size: 15px; }
+.auth-scene-points li { padding-left: 18px; position: relative; }
+.auth-scene-points li::before { content: ''; position: absolute; left: 0; top: 0.7em; width: 8px; height: 1px; background: var(--accent); }
+.auth-scene-points strong { color: var(--ink); }
+
+.site-header .navlinks { gap: 2px; }
+.site-header-cta { margin-left: 8px; }
+.site-footer-base { padding-top: var(--s-4); border-top: 1px solid var(--rule); }
+/* Over the immersive hero the bar is night vellum, so the page reads as one
+   stage until the first scroll. */
+.site-header-immersive {
+  --ink: #e8efec; --muted: #a9b9b4; --surface: #16221f; --line: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(10, 18, 16, 0.62); --glass-line: rgba(255, 255, 255, 0.08);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+}
+.site-header-immersive .brand { color: var(--ink); }
+.site-header-immersive .brand-tail { color: var(--jade-300); }

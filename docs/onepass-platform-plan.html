@@ -1,0 +1,538 @@
+<title>ONEPASS Trust Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#EDF1EF; --surface:#FFFFFF; --raised:#F5F8F7; --sunken:#E4EAE8;
+  --ink:#0B211E; --ink-2:#3D534F; --muted:#6F8480;
+  --line:#D6DFDC; --line-2:#C0CFCA;
+  --accent:#007253; --accent-ink:#FFFFFF; --accent-soft:#E2F0EB; --accent-line:#A9CFC3;
+  --marigold:#A85B05; --marigold-soft:#F8EEE1;
+  --p0:#A8352B; --p0-soft:#F8E6E3;
+  --p1:#8F6100; --p1-soft:#F8EFDA;
+  --p2:#1E7A4C; --p2-soft:#E1F1E7;
+  --p3:#4A5F86; --p3-soft:#E8ECF4;
+  --s-1:#008963; --s-2:#A85B05; --s-3:#516CBD;
+  --shadow:0 1px 2px rgba(11,33,30,.05), 0 10px 28px -14px rgba(11,33,30,.20);
+  --r:14px;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --display:"Bricolage Grotesque","IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08120F; --surface:#101F1D; --raised:#162926; --sunken:#0C1917;
+    --ink:#DFEAE6; --ink-2:#A6BAB5; --muted:#758A85;
+    --line:#223734; --line-2:#31504A;
+    --accent:#43BD99; --accent-ink:#04211A; --accent-soft:#12312A; --accent-line:#265448;
+    --marigold:#D89040; --marigold-soft:#2C2318;
+    --p0:#E8776A; --p0-soft:#301A18;
+    --p1:#D8A33A; --p1-soft:#2B2416;
+    --p2:#4FB37C; --p2-soft:#122C20;
+    --p3:#8FA6D6; --p3-soft:#1A2233;
+    --s-1:#00A27A; --s-2:#C2732C; --s-3:#6784D8;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08120F; --surface:#101F1D; --raised:#162926; --sunken:#0C1917;
+  --ink:#DFEAE6; --ink-2:#A6BAB5; --muted:#758A85;
+  --line:#223734; --line-2:#31504A;
+  --accent:#43BD99; --accent-ink:#04211A; --accent-soft:#12312A; --accent-line:#265448;
+  --marigold:#D89040; --marigold-soft:#2C2318;
+  --p0:#E8776A; --p0-soft:#301A18;
+  --p1:#D8A33A; --p1-soft:#2B2416;
+  --p2:#4FB37C; --p2-soft:#122C20;
+  --p3:#8FA6D6; --p3-soft:#1A2233;
+  --s-1:#00A27A; --s-2:#C2732C; --s-3:#6784D8;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,figure,ul,ol{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+.wrap{max-width:940px;margin:0 auto;padding:0 22px}
+.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+header.masthead{border-bottom:1px solid var(--line);background:var(--surface)}
+.masthead-in{max-width:940px;margin:0 auto;padding:46px 22px 40px}
+.eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(145deg,#0B4A3E,#06302A);display:grid;place-items:center;flex:none}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,54px);letter-spacing:-.03em;line-height:1.03;text-wrap:balance}
+.standfirst{font-size:clamp(16px,2.3vw,19px);color:var(--ink-2);max-width:60ch;margin-top:16px;line-height:1.55}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--raised);border:1px solid var(--line);color:var(--ink-2)}
+.tag.hot{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+
+section{padding:52px 0 8px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-key{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);flex:none;padding-top:4px}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(23px,3.6vw,31px);letter-spacing:-.022em;line-height:1.15;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:17.5px;letter-spacing:-.012em;margin:30px 0 8px}
+h4{font-size:14px;font-weight:700;margin:20px 0 6px}
+p{margin:12px 0;max-width:68ch}
+p.lede{font-size:16.5px;color:var(--ink-2)}
+ul,ol{margin:12px 0;padding-left:20px;max-width:68ch}
+li{margin:5px 0}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.88em;background:var(--sunken);padding:1.5px 5px;border-radius:4px;border:1px solid var(--line)}
+hr.rule{border:0;height:1px;background:var(--line);margin:44px 0 0}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 22px;margin:18px 0}
+.card-tight{padding:16px 18px}
+.callout{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r);padding:16px 20px;margin:20px 0}
+.callout .lbl{color:var(--accent)}
+.warn{background:var(--marigold-soft);border-color:color-mix(in srgb,var(--marigold) 35%,transparent)}
+.warn .lbl{color:var(--marigold)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:18px 0}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--raised)}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.mono{font-family:var(--mono);font-size:12px}
+
+.pri{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.P0{background:var(--p0-soft);color:var(--p0)}
+.P1{background:var(--p1-soft);color:var(--p1)}
+.P2{background:var(--p2-soft);color:var(--p2)}
+.P3{background:var(--p3-soft);color:var(--p3)}
+.built{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:14px 0;font-family:var(--mono);font-size:11.5px}
+.flow span{background:var(--raised);border:1px solid var(--line);border-radius:7px;padding:5px 9px;white-space:nowrap}
+.flow i{color:var(--muted);font-style:normal}
+.flow span.term{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);font-weight:600}
+
+figure.dia{margin:22px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 18px 16px;overflow-x:auto}
+figure.dia svg{display:block;width:100%;min-width:460px;height:auto}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center}
+
+.phase{display:grid;grid-template-columns:88px 1fr;gap:16px;padding:16px 0;border-top:1px solid var(--line)}
+.phase:first-of-type{border-top:0}
+.phase-n{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);padding-top:3px}
+.phase h4{margin:0 0 4px}
+.phase p{margin:4px 0 0;font-size:13.5px;color:var(--ink-2)}
+
+.screens{columns:2;column-gap:26px;font-size:13.5px;font-family:var(--mono);margin:14px 0}
+.screens div{break-inside:avoid;padding:3px 0;color:var(--ink-2)}
+.screens div b{color:var(--ink);font-weight:600}
+@media (max-width:620px){.screens{columns:1}}
+
+footer{border-top:1px solid var(--line);margin-top:60px;background:var(--surface)}
+.foot-in{max-width:940px;margin:0 auto;padding:26px 22px 40px;font-size:12.5px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+</style>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="eyebrow">
+      <span class="mark" aria-hidden="true">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7FE3C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><circle cx="9" cy="11" r="2"/><path d="M14 10h3.5M14 13.4h2.4"/></svg>
+      </span>
+      <span class="lbl">ONEPASS · platform plan</span>
+    </div>
+    <h1>From a pass to a trust network</h1>
+    <p class="standfirst">A verification layer for India that answers six questions about anyone standing in front of you: who they are, what they hold, who issued it, whether it is still valid, what it opens, and who is allowed to see any of it.</p>
+    <div class="meta">
+      <span class="tag hot">Recommended wedge · Campus</span>
+      <span class="tag">Backend live on PostgreSQL</span>
+      <span class="tag">India-first</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section>
+  <div class="sec-head"><span class="sec-key">00</span><h2>The decision to make before any more code</h2></div>
+  <p class="lede">The two directions point at different products, and it is worth naming that plainly before building further.</p>
+  <p>The product shipped today is <strong>hospitality, finance, retail and entertainment</strong>: a traveller, merchants, partner analytics. The direction being considered is <strong>credentials, campus and verification</strong> — students, certificates, visitors, issuers.</p>
+  <p>These are not the same product. But the gap is smaller than it looks, and the direction of travel matters:</p>
+  <div class="grid2">
+    <div class="card card-tight">
+      <span class="lbl">What generalises</span>
+      <p style="margin-top:6px;font-size:14px">A hotel accepting a guest's pass and a campus gate accepting a student's ID are the <em>same operation</em>: a holder presents a short-lived proof, a verifier checks it against an issuer, and consent decides what the verifier gets to see. That engine is already built and tested.</p>
+    </div>
+    <div class="card card-tight">
+      <span class="lbl">What is genuinely new</span>
+      <p style="margin-top:6px;font-size:14px">A <strong>credential</strong> as a first-class object — issued by an organization, typed, dated, expiring, revocable, independently verifiable long after the holder has left. The current schema has no such entity. It is an addition, not a rewrite.</p>
+    </div>
+  </div>
+  <div class="callout">
+    <span class="lbl">Recommendation</span>
+    <p style="margin-top:6px"><strong>Ship hospitality and retail as the product, build the credential platform as the company.</strong> Position ONEPASS as a trust layer whose first vertical happens to be hospitality and retail — the same pass, the same consent model, one industry deep. Then aim the go-to-market at campus, where the issuers live. Do not rewrite a working product into a campus product to chase the second market; add the credential entity behind it and let the shipped surface keep earning.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">A</span><h2>Product architecture</h2></div>
+  <p class="lede">Four entities and the edges between them. Everything ONEPASS ever sells is a query over this graph.</p>
+
+  <figure class="dia">
+    <svg viewBox="0 0 760 320" role="img" aria-labelledby="graph-title">
+      <title id="graph-title">The ONEPASS trust graph: a person belongs to an organization, holds credentials issued by organizations, and those credentials grant access to assets and facilities.</title>
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g style="color:var(--line-2)" stroke="currentColor" stroke-width="1.4" fill="none" marker-end="url(#ar)">
+        <path d="M196 92 L300 92"/>
+        <path d="M196 118 C 250 160, 300 190, 352 206"/>
+        <path d="M472 92 L472 168"/>
+        <path d="M556 206 L640 206"/>
+        <path d="M472 232 C 420 280, 300 280, 208 250"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--muted)" letter-spacing=".06em">
+        <text x="248" y="84" text-anchor="middle">BELONGS TO</text>
+        <text x="238" y="176" text-anchor="middle">HOLDS</text>
+        <text x="482" y="134">ISSUED BY</text>
+        <text x="598" y="198" text-anchor="middle">GRANTS</text>
+        <text x="330" y="292" text-anchor="middle">CONSENT DECIDES WHAT A VERIFIER SEES</text>
+      </g>
+      <g>
+        <rect x="40" y="66" width="156" height="78" rx="12" fill="var(--accent-soft)" stroke="var(--accent-line)" stroke-width="1.2"/>
+        <text x="118" y="98" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="15" fill="var(--accent)">PERSON</text>
+        <text x="118" y="118" text-anchor="middle" font-size="11" fill="var(--ink-2)">student · employee</text>
+        <text x="118" y="132" text-anchor="middle" font-size="11" fill="var(--ink-2)">visitor · contractor</text>
+
+        <rect x="302" y="52" width="170" height="78" rx="12" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"/>
+        <text x="387" y="84" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="15" fill="var(--ink)">ORGANIZATION</text>
+        <text x="387" y="104" text-anchor="middle" font-size="11" fill="var(--ink-2)">college · company</text>
+        <text x="387" y="118" text-anchor="middle" font-size="11" fill="var(--ink-2)">society · organiser</text>
+
+        <rect x="352" y="168" width="204" height="78" rx="12" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"/>
+        <text x="454" y="200" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="15" fill="var(--ink)">CREDENTIAL</text>
+        <text x="454" y="220" text-anchor="middle" font-size="11" fill="var(--ink-2)">student ID · degree · pass</text>
+        <text x="454" y="234" text-anchor="middle" font-size="11" fill="var(--ink-2)">membership · authorization</text>
+
+        <rect x="640" y="168" width="104" height="78" rx="12" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"/>
+        <text x="692" y="200" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="14" fill="var(--ink)">ASSET</text>
+        <text x="692" y="220" text-anchor="middle" font-size="11" fill="var(--ink-2)">gate · library</text>
+        <text x="692" y="234" text-anchor="middle" font-size="11" fill="var(--ink-2)">vehicle · lab</text>
+      </g>
+    </svg>
+    <figcaption>A credential is the only object that outlives the relationship. A student leaves; the degree stays verifiable. That is the whole business.</figcaption>
+  </figure>
+
+  <h3>Modules, and which of them exist today</h3>
+  <p>The architecture is a modular monolith — one deployable, hard internal boundaries — because a five-person team running microservices is a five-person team debugging networks instead of shipping.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Module</th><th>Owns</th><th>Status in the repo</th></tr></thead>
+      <tbody>
+        <tr><td><b>Identity</b></td><td>Users, profiles, sessions, devices, OTP, recovery</td><td><span class="pri built">BUILT</span> Argon2id, opaque sessions, hashed OTP</td></tr>
+        <tr><td><b>Authorization</b></td><td>Roles, permissions, tenant boundaries</td><td><span class="pri built">BUILT</span> 48 permissions, 7 roles, per-tenant guard</td></tr>
+        <tr><td><b>Organizations</b></td><td>Tenants, members, approval workflow</td><td><span class="pri built">BUILT</span> schema + admin approval routes</td></tr>
+        <tr><td><b>Consent</b></td><td>Versioned grants, scope-projected reads</td><td><span class="pri built">BUILT</span> definitions, versions, grants</td></tr>
+        <tr><td><b>Pass / presentation</b></td><td>Short-lived proof, verification, replay defence</td><td><span class="pri built">BUILT</span> HMAC TOTP, DB-enforced replay</td></tr>
+        <tr><td><b>Audit &amp; security</b></td><td>Append-only trail, security events, outbox</td><td><span class="pri built">BUILT</span> redaction enforced in code</td></tr>
+        <tr><td><b>Realtime</b></td><td>SSE fan-out from the transactional outbox</td><td><span class="pri built">BUILT</span> Redis pub/sub + in-process fallback</td></tr>
+        <tr><td><b>Payments</b></td><td>Provider tokens, webhooks, transactions</td><td><span class="pri built">BUILT</span> Razorpay adapter, signature verified</td></tr>
+        <tr><td><b>Credential</b></td><td>Types, issuance, expiry, revocation, verification</td><td><span class="pri P0">P0 — NOT BUILT</span> the pivot's core gap</td></tr>
+        <tr><td><b>Access</b></td><td>Gates, facilities, entry/exit records</td><td><span class="pri P1">P1</span></td></tr>
+        <tr><td><b>Visitor</b></td><td>Pre-registration, host approval, entry pass</td><td><span class="pri P1">P1</span></td></tr>
+        <tr><td><b>Events</b></td><td>Registration, session access, attendance</td><td><span class="pri P2">P2</span></td></tr>
+        <tr><td><b>Developer API</b></td><td>Keys, usage metering, sandbox, webhooks</td><td><span class="pri P2">P2</span> keys + webhooks in schema</td></tr>
+        <tr><td><b>Billing</b></td><td>Subscriptions, seats, invoices</td><td><span class="pri P2">P2</span></td></tr>
+        <tr><td><b>Risk</b></td><td>Verification anomaly signals</td><td><span class="pri P2">P2</span> security events exist</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">B</span><h2>Feature priority</h2></div>
+  <p class="lede">The backlog lists roughly 200 features across 22 products. Shipping a tenth of them well is the difference between a company and a feature list.</p>
+
+  <h3>P0 — without these there is no product</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Feature</th><th>Why it is P0</th></tr></thead>
+    <tbody>
+      <tr><td>Credential model: type, issuer, holder, validity, revocation</td><td>Every other product is a credential with a different label on it.</td></tr>
+      <tr><td>Issuance by a verified organization</td><td>A credential nobody trusted issued is worth nothing.</td></tr>
+      <tr><td>Public verification page from a QR scan</td><td>The single screen that sells the product. Works signed-out, on a bad connection.</td></tr>
+      <tr><td>Revocation, and revocation visible at verification</td><td>The one thing paper certificates cannot do. This is the wedge.</td></tr>
+      <tr><td>Consent-scoped disclosure to verifiers</td><td>Determines whether ONEPASS is infrastructure or a data-broker liability.</td></tr>
+      <tr><td>Organization onboarding and approval</td><td>Supply side. No issuers, no network.</td></tr>
+      <tr><td>Auth, RBAC, tenant isolation, audit</td><td><span class="pri built">Already built</span> — do not rebuild it.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>P1 — needed for a real pilot to survive a semester</h3>
+  <p>Bulk student import (CSV, because that is what a registrar has); credential expiry and renewal notices; lost/replacement ID flow; campus gate scanning with an offline-tolerant queue; visitor pre-registration with host approval; org admin analytics; parent/guardian read-only access; Hindi and Marathi UI.</p>
+
+  <h3>P2 — needed to sell to the second and third customer</h3>
+  <p>Public verification API with keys and metering; webhooks; events module with attendance-to-certificate; facility booking; billing and subscriptions; risk dashboard; white-label branding; skill passport.</p>
+
+  <h3>P3 — vision, not roadmap</h3>
+  <p>Internship and apprenticeship passports; scholarship discovery; vendor and contractor verification; parking; mobility; EV access; ONEPASS City. <strong>Label every one of these "Integration ready" in the product and never imply otherwise.</strong> A judge who finds one fake integration discounts everything else you showed them.</p>
+
+  <div class="callout warn">
+    <span class="lbl">The AI assistant, specifically</span>
+    <p style="margin-top:6px">Sections 23 and 24 of your brief are the highest-risk features in it. An assistant answering "which credentials expire soon?" must run every query through the same authorization guard as the API — an LLM with database access and no permission check is a data breach with a chat interface. And a document assistant must <em>never</em> render a verdict on authenticity: it can read a date, flag a missing field, and say "this needs issuer verification". Build it in Phase 3, behind the same <code>authorize()</code> call, or not at all.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">C</span><h2>User flows</h2></div>
+
+  <h4>Student — onboarding to verified ID</h4>
+  <div class="flow"><span>College imports roll</span><i>→</i><span>SMS invite</span><i>→</i><span>Mobile OTP</span><i>→</i><span>Set password</span><i>→</i><span>Credential auto-issued</span><i>→</i><span class="term">Pass live</span></div>
+  <p style="font-size:14px">The student never fills a form. The registrar's CSV already holds the truth; asking a student to re-type it invites errors and drop-off.</p>
+
+  <h4>Organization admin — issuing a certificate</h4>
+  <div class="flow"><span>Verify org</span><i>→</i><span>Define credential type</span><i>→</i><span>Upload recipients</span><i>→</i><span>Review</span><i>→</i><span>Issue batch</span><i>→</i><span class="term">Each holder notified</span></div>
+
+  <h4>Verifier — an employer checking a degree</h4>
+  <div class="flow"><span>Scan QR / enter ID</span><i>→</i><span>Public page</span><i>→</i><span class="term">VERIFIED · issuer · dates · status</span></div>
+  <p style="font-size:14px">No login. No app. Signed-out and cacheable, because the person checking is a stranger with thirty seconds. The page shows what the credential asserts and who asserts it — never the holder's contact details.</p>
+
+  <h4>Security officer — a gate</h4>
+  <div class="flow"><span>Scan pass</span><i>→</i><span>5 checks</span><i>→</i><span>Entitlement at <em>this</em> gate</span><i>→</i><span class="term">Allow / refuse</span><i>→</i><span>Entry logged</span></div>
+  <p style="font-size:14px">Must work with intermittent network: verify signature and expiry locally, queue the entry record, reconcile when the connection returns. A gate that stops when the wifi does will be propped open within a week.</p>
+
+  <h4>Company HR — visitor management</h4>
+  <div class="flow"><span>Visitor pre-registers</span><i>→</i><span>OTP</span><i>→</i><span>Host approves</span><i>→</i><span>Time-boxed QR</span><i>→</i><span>Reception scan</span><i>→</i><span class="term">Auto-expire on exit</span></div>
+
+  <h4>Event organiser</h4>
+  <div class="flow"><span>Create event</span><i>→</i><span>Registration</span><i>→</i><span>Pass issued</span><i>→</i><span>Entry scan</span><i>→</i><span>Session attendance</span><i>→</i><span class="term">Certificate issued from attendance</span></div>
+  <p style="font-size:14px">The last arrow is the product. Attendance data becomes a verifiable credential automatically — that is what an organiser will pay for, not the ticketing.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">D</span><h2>Screen map</h2></div>
+  <p class="lede">Phase 1 and 2 only. Every screen below is one a pilot actually needs.</p>
+  <div class="screens">
+    <div><b>Public</b></div>
+    <div>/ — landing</div>
+    <div>/verify — enter a credential id</div>
+    <div>/v/[credentialId] — verification result</div>
+    <div>/org/[slug] — organization profile</div>
+    <div>/pricing · /security · /docs</div>
+    <div>&nbsp;</div>
+    <div><b>Auth</b></div>
+    <div>/sign-in · /sign-up</div>
+    <div>/verify-mobile · /verify-email</div>
+    <div>/recover · /recover/reset</div>
+    <div>&nbsp;</div>
+    <div><b>Holder</b></div>
+    <div>/app — overview</div>
+    <div>/app/pass — the live QR</div>
+    <div>/app/credentials · /app/credentials/[id]</div>
+    <div>/app/organizations — who I am connected to</div>
+    <div>/app/consent — what each may see</div>
+    <div>/app/activity — where my pass was used</div>
+    <div>/app/notifications</div>
+    <div>/app/security — sessions, devices</div>
+    <div>/app/settings · /app/settings/privacy</div>
+    <div>&nbsp;</div>
+    <div><b>Organization</b></div>
+    <div>/org/[slug]/dashboard</div>
+    <div>/org/[slug]/people · /people/import</div>
+    <div>/org/[slug]/credentials — types</div>
+    <div>/org/[slug]/issue — single &amp; batch</div>
+    <div>/org/[slug]/verify — counter/gate</div>
+    <div>/org/[slug]/visitors</div>
+    <div>/org/[slug]/access — gates, facilities</div>
+    <div>/org/[slug]/team · /roles</div>
+    <div>/org/[slug]/analytics</div>
+    <div>/org/[slug]/audit</div>
+    <div>/org/[slug]/developers — keys, webhooks</div>
+    <div>/org/[slug]/billing · /settings</div>
+    <div>&nbsp;</div>
+    <div><b>Platform</b></div>
+    <div>/admin — overview</div>
+    <div>/admin/users · /admin/organizations</div>
+    <div>/admin/approvals — issuer vetting</div>
+    <div>/admin/security · /admin/audit</div>
+    <div>/admin/risk · /admin/health</div>
+    <div>/admin/support · /admin/config</div>
+  </div>
+  <p><strong>Roughly 45 screens.</strong> Your brief implies well over 200. The difference is what "do not overbuild" means in practice.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">E</span><h2>Database architecture</h2></div>
+  <p class="lede">31 tables exist and are migrated. Here is what they are, and the seven the pivot adds.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Domain</th><th>Tables</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Identity</td><td class="mono">users, user_profiles, devices, sessions, auth_events, verification_requests</td><td>Passwords Argon2id; sessions stored as SHA-256 of an opaque token</td></tr>
+      <tr><td>Tenancy</td><td class="mono">organizations, organization_members</td><td>The tenant boundary every partner query filters on</td></tr>
+      <tr><td>RBAC</td><td class="mono">roles, permissions, role_permissions, user_roles</td><td><code>user_roles.membership_id</code> is what scopes a role to one tenant</td></tr>
+      <tr><td>Consent</td><td class="mono">consent_definitions, consent_versions, consent_grants, partner_connections</td><td>Versioned — re-wording a scope never rewrites history</td></tr>
+      <tr><td>Pass</td><td class="mono">passes, pass_presentations</td><td>Unique <code>(pass, counter, org)</code> = replay defence in the database</td></tr>
+      <tr><td>Money</td><td class="mono">payment_methods, transactions</td><td>Provider tokens and masked labels only. No PAN, CVV or UPI PIN</td></tr>
+      <tr><td>Ops</td><td class="mono">audit_logs, security_events, outbox_events, idempotency_keys, notifications, notification_preferences, api_keys, webhooks, webhook_deliveries, support_tickets, account_deletion_requests</td><td>Audit is append-only by permission, not just convention</td></tr>
+      <tr style="background:var(--accent-soft)"><td><b>To add</b></td><td class="mono">credential_types, credentials, credential_revocations, verifications, access_points, access_grants, entry_records</td><td>Plus <code>visitors</code>, <code>events</code>, <code>event_attendance</code> at P1/P2</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The credential table, specifically</h3>
+  <p>Three fields decide whether this is a real verification platform:</p>
+  <ul>
+    <li><strong>A content hash</strong> over the asserted claims, so tampering is detectable independently of the row.</li>
+    <li><strong>An issuer signature</strong> — Ed25519 over that hash, with the issuing organization's public key published on its profile. This is what makes a ONEPASS certificate verifiable by a third party who does not trust <em>ONEPASS</em>, only the issuer. It is also the honest answer to "what if you go out of business".</li>
+    <li><strong>A revocation record that is separate from the credential row</strong>, so revoking is an append, never an update of history.</li>
+  </ul>
+  <p>Identifiers are ULIDs and public references are separate random strings, so a credential id printed on a certificate reveals neither issue order nor volume.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">F</span><h2>API architecture</h2></div>
+  <div class="scroll"><table>
+    <thead><tr><th>Route</th><th>Auth</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">POST /api/v1/verify</td><td>API key <em>or</em> none</td><td>The core call. Rate-limited hard when unauthenticated.</td></tr>
+      <tr><td class="mono">GET /api/v1/credentials/:id</td><td>Public (minimal)</td><td>Status, issuer, dates. Never holder contact details.</td></tr>
+      <tr><td class="mono">POST /api/v1/credentials</td><td>API key · issuer scope</td><td>Issue. Idempotency key required.</td></tr>
+      <tr><td class="mono">POST /api/v1/credentials/:id/revoke</td><td>API key · issuer scope</td><td>Append a revocation; effective immediately.</td></tr>
+      <tr><td class="mono">GET /api/v1/organizations/:id</td><td>Public</td><td>Verification status, public key, credentials issued.</td></tr>
+      <tr><td class="mono">POST /api/partner/:orgId/pass/verify</td><td>Session · <code>partner.pass:verify</code></td><td><span class="pri built">BUILT</span> five-check presentation</td></tr>
+      <tr><td class="mono">GET /api/events/stream</td><td>Session</td><td><span class="pri built">BUILT</span> SSE, channels derived from the session only</td></tr>
+      <tr><td class="mono">/api/me/*</td><td>Session · <code>self.*</code></td><td><span class="pri built">BUILT</span> profile, sessions, consent, pass, export</td></tr>
+      <tr><td class="mono">/api/admin/*</td><td>Session · <code>platform.*</code></td><td><span class="pri built">BUILT</span> users, partners, audit, security, health</td></tr>
+      <tr><td class="mono">/api/health · /api/ready</td><td>Public</td><td><span class="pri built">BUILT</span> liveness leaks nothing; readiness probes dependencies</td></tr>
+    </tbody>
+  </table></div>
+  <p>Every route runs through one wrapper that applies request id, body limit, schema validation, rate limit, origin check, structured errors and no-store caching. A handler cannot skip a step because it never receives a raw request.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">G</span><h2>Security architecture</h2></div>
+
+  <h4>Authentication</h4>
+  <p>Argon2id at 19 MiB / 2 passes. Login always costs one hash whether or not the account exists, so timing cannot enumerate users. Sessions are opaque 256-bit tokens; only their SHA-256 is stored, so a database dump yields nothing usable. "Log out everywhere" bumps one integer on the user row and every session stops resolving.</p>
+
+  <h4>Authorization</h4>
+  <p>Partner permissions are computed <em>per membership</em>, never globally. <code>authorize()</code> refuses to answer a partner question without an organization id, and hands the handler back the id it must filter on — so forgetting a tenant filter is a type error rather than a breach. Roles, organization ids and permissions are never read from the client.</p>
+
+  <h4>Verification and QR</h4>
+  <p>The QR carries a reference and a short-lived signed proof — never personal data. Anti-replay is a unique database constraint, so two concurrent scans cannot both win. Long-lived credential QRs carry only an opaque id; everything meaningful comes from the server, gated by consent.</p>
+
+  <h4>Audit</h4>
+  <p>Append-only, with a sanitiser that strips anything credential-shaped at any depth before it can be written. IP addresses and login identifiers are stored as peppered HMACs — correlatable for investigation, unreadable at rest.</p>
+
+  <div class="callout warn">
+    <span class="lbl">What is not true yet</span>
+    <p style="margin-top:6px">No penetration test. No third-party audit. No PCI or DPDP assessment. The architecture is designed toward those standards and the code avoids the usual failures, but <strong>do not write "bank-grade", "100% secure" or "compliant" anywhere in the product</strong> until an assessment exists. Enterprise buyers check.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">H</span><h2>Business model</h2></div>
+  <p class="lede">Indian institutional budgets, not Silicon Valley price cards.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Product</th><th>Unit</th><th class="n">Price</th><th class="n">Typical annual</th></tr></thead>
+    <tbody>
+      <tr><td>Campus</td><td>per student / year</td><td class="n">₹40 – ₹110</td><td class="n">₹2L – ₹6L</td></tr>
+      <tr><td>Certificates</td><td>per credential issued</td><td class="n">₹3 – ₹12</td><td class="n">₹40k – ₹3L</td></tr>
+      <tr><td>Verify API</td><td>per verification</td><td class="n">₹6 – ₹20</td><td class="n">usage</td></tr>
+      <tr><td>Business</td><td>per employee / month</td><td class="n">₹25 – ₹70</td><td class="n">₹3L – ₹40L</td></tr>
+      <tr><td>Visitor</td><td>per site / month</td><td class="n">₹4k – ₹15k</td><td class="n">₹50k – ₹5L</td></tr>
+      <tr><td>Events</td><td>per attendee</td><td class="n">₹4 – ₹15</td><td class="n">per event</td></tr>
+      <tr><td>Society</td><td>per flat / month</td><td class="n">₹12 – ₹30</td><td class="n">₹40k – ₹2L</td></tr>
+      <tr><td>White-label</td><td>platform fee</td><td class="n">+40%</td><td class="n">custom</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>How the ARR ladder could work</h3>
+  <p>Illustrative scenarios, not forecasts. Each assumes ~90% logo retention, which is realistic for infrastructure embedded in a gate but must be earned.</p>
+  <div class="grid3">
+    <div class="card card-tight">
+      <span class="lbl">₹1 crore ARR</span>
+      <p style="margin:6px 0 0;font-size:13.5px"><strong>~30 colleges</strong> averaging ₹3.3L. Roughly 18–24 months, one founder selling, Maharashtra only. No enterprise, no API revenue.</p>
+    </div>
+    <div class="card card-tight">
+      <span class="lbl">₹10 crore ARR</span>
+      <p style="margin:6px 0 0;font-size:13.5px"><strong>150 institutions</strong> (₹7.5cr) + <strong>verification API</strong> (₹1.5cr) + <strong>~20 enterprises</strong> (₹1cr). Needs a real sales team and two more states.</p>
+    </div>
+    <div class="card card-tight">
+      <span class="lbl">₹100 crore ARR</span>
+      <p style="margin:6px 0 0;font-size:13.5px"><strong>800 institutions</strong> (₹40cr) + <strong>400 enterprises</strong> at ₹10L (₹40cr) + <strong>API</strong> (₹15cr) + events and societies (₹5cr). A different company: 150+ people, national.</p>
+    </div>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">The honest caveat: the third column is a decade-scale outcome that depends on the verification network becoming the default, and most companies that reach the first column never reach the second.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">I</span><h2>Go-to-market</h2></div>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Wedge</th><th class="n">Pain</th><th class="n">Sales ease</th><th class="n">Competition</th><th class="n">Network effect</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr style="background:var(--accent-soft)"><td><b>A · Campus credentials</b></td><td class="n">High</td><td class="n">Medium</td><td class="n">Fragmented</td><td class="n">Strong</td><td><b>Start here</b></td></tr>
+      <tr><td>B · Certificate verification</td><td class="n">Very high</td><td class="n">Hard</td><td class="n">Some</td><td class="n">Very strong</td><td>Second — needs issuers first</td></tr>
+      <tr><td>C · Visitor management</td><td class="n">Low</td><td class="n">Easy</td><td class="n">Crowded</td><td class="n">None</td><td>Feature, not a company</td></tr>
+      <tr><td>D · Enterprise credentials</td><td class="n">Medium</td><td class="n">Very hard</td><td class="n">Entrenched</td><td class="n">Medium</td><td>Later, with references</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Why campus, and why not the others</h3>
+  <p><strong>Certificate verification is the better business and the worse first move.</strong> It is worth nothing until issuers are on the platform, and issuers are colleges. Campus is how you acquire the supply side while getting paid for it. Sequence, not preference.</p>
+  <p><strong>Visitor management is a trap.</strong> Easy to sell, ₹5k a month, a dozen incumbents, and it teaches you nothing about credentials. It will feel like traction and consume a year.</p>
+  <p>Campus is also where a first pilot is easiest to place: a single department, running for one term with real users, produces the entry-time and card-replacement numbers that the whole later sales case rests on.</p>
+
+  <h3>The first twelve months</h3>
+  <div class="phase"><span class="phase-n">Months 1–3</span><div><h4>One campus, free, instrumented</h4><p>Your own. One department if that is what you can get. Digital ID + gate + library. Measure entry times and card-replacement costs — those numbers are your entire sales deck later.</p></div></div>
+  <div class="phase"><span class="phase-n">Months 4–6</span><div><h4>Three paid pilots</h4><p>₹1–2L each, discounted for the reference and a quotable outcome. Nearby colleges where a principal will take a meeting because a peer institution asked them to.</p></div></div>
+  <div class="phase"><span class="phase-n">Months 7–9</span><div><h4>Certificates, and the first verifier</h4><p>Convocation season. Issue verifiable degrees for a graduating batch. Then approach the employers who hire from those colleges — now the verification API has something to verify.</p></div></div>
+  <div class="phase"><span class="phase-n">Months 10–12</span><div><h4>Repeatable sale</h4><p>Fixed price, two-week onboarding, self-serve import. Target 12–15 institutions. This is the point at which the thing is a business rather than a project.</p></div></div>
+
+  <div class="callout">
+    <span class="lbl">The one metric that matters</span>
+    <p style="margin-top:6px"><strong>Verifications per credential per year.</strong> Credentials issued is a vanity number — a college will happily issue 5,000 IDs that nobody ever scans. A credential that gets checked is a credential someone depends on, and dependence is what renews a contract.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="sec-head"><span class="sec-key">J</span><h2>One, five, ten years</h2></div>
+
+  <div class="phase"><span class="phase-n">Year 1</span><div><h4>A campus product with paying colleges</h4><p>15–30 institutions, ₹50L–₹1cr ARR, one state. ONEPASS is student ID, gate access and verifiable certificates. Small, real, defensible.</p></div></div>
+  <div class="phase"><span class="phase-n">Year 3</span><div><h4>The verification API starts to matter</h4><p>Enough graduates carry ONEPASS credentials that employers begin checking them. Revenue shifts from seats toward verifications — the first sign of a network rather than a tool.</p></div></div>
+  <div class="phase"><span class="phase-n">Year 5</span><div><h4>Two-sided: issuers and verifiers</h4><p>Institutions, employers and event organisers on one graph. ₹10–25cr ARR. Enterprise adoption starts, driven by HR teams already verifying candidates. White-label for large universities.</p></div></div>
+  <div class="phase"><span class="phase-n">Year 10</span><div><h4>Infrastructure, if the network held</h4><p>Credentials pass between organizations without either integrating with the other, because both speak ONEPASS. Revenue is mostly usage. At that point the interesting question is interoperability with W3C Verifiable Credentials and whatever India's digital-credential standards have become — and the company that <em>implements the standard</em> rather than resisting it is the one that survives it.</p></div></div>
+
+  <p style="margin-top:24px"><strong>The honest version:</strong> most of the twenty-two products in your brief will never be built, and that is fine. Companies that become infrastructure do it by being the best in the world at one small thing for long enough that everything else has to route through them. For ONEPASS that thing is: <em>a credential a stranger can trust in three seconds, and revoke in one.</em></p>
+</section>
+
+</main>
+
+<footer>
+  <div class="foot-in">
+    <span>Plan and architecture · not a forecast. Pricing and ARR scenarios are illustrative.</span>
+    <span class="num">ONEPASS · platform plan</span>
+  </div>
+</footer>

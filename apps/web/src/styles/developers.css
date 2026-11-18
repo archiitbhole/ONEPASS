@@ -1,0 +1,104 @@
+/*
+ * The developer platform: a reference kept open in a second tab while someone
+ * writes code against it. Quieter than the consumer app, warmer than the
+ * control room, and monospace is given real weight.
+ */
+
+/* ── HTTP method badges ── fixed width, so a column of them stays a column. */
+.method {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 62px; padding: 3px 8px; border-radius: var(--r-xs); border: 1px solid transparent;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.5; flex: none;
+}
+.method-get { background: var(--info-soft); color: var(--info); border-color: color-mix(in srgb, var(--info) 28%, transparent); }
+.method-post { background: var(--ok-soft); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 28%, transparent); }
+.method-patch { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 28%, transparent); }
+.method-delete { background: var(--bad-soft); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 28%, transparent); }
+
+/* ── the endpoint signature line ── */
+.sig { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sig-path { font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: var(--ink); overflow-wrap: break-word; min-width: 0; }
+.sig-path .slot { color: var(--accent); }
+
+/* ── code, with a copy affordance ── */
+.code-wrap { display: flex; flex-direction: column; min-width: 0; }
+.code-wrap > .code-block { min-width: 0; border-radius: 0 0 var(--r-m) var(--r-m); }
+.code-head {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  padding: 6px 8px 6px 12px; border: 1px solid var(--line); border-bottom: 0;
+  border-radius: var(--r-m) var(--r-m) 0 0; background: var(--raised);
+}
+.code-label {
+  margin-right: auto; font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+.code-copy {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: var(--r-s); background: var(--surface); color: var(--muted);
+  font-family: var(--font-display); font-size: 12px; font-weight: 620; cursor: pointer;
+  opacity: 0.8; transition: opacity var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.code-wrap:hover .code-copy, .code-copy:focus-visible { opacity: 1; }
+.code-copy:hover { color: var(--ink); border-color: var(--accent-line); }
+.code-copy[data-copied='true'] { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+
+/* ── JSON colouring ── four roles, no more. */
+.j-key { color: var(--accent); }
+.j-str { color: var(--ok); }
+.j-num { color: var(--info); }
+.j-lit { color: var(--warn); }
+.j-punc { color: var(--muted); }
+
+/* ── the docs shell ── */
+.docs-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 44px; align-items: start; }
+.docs-nav {
+  position: sticky; top: 84px; max-height: calc(100dvh - 104px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 2px; padding-right: 4px;
+}
+.docs-nav-group { display: flex; flex-direction: column; gap: 1px; margin-top: 18px; }
+.docs-nav-group:first-child { margin-top: 0; }
+.docs-nav-head {
+  font-family: var(--font-display); font-stretch: var(--w-condensed);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding: 4px 10px 6px;
+}
+.docs-nav a {
+  display: block; padding: 7px 10px; border-radius: var(--r-s);
+  font-size: 14px; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent;
+}
+.docs-nav a:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
+.docs-nav a[aria-current='page'] { background: var(--accent-soft); border-left-color: var(--accent); color: var(--accent); font-weight: 620; }
+.docs-nav a.sub { padding-left: 20px; font-size: 12.5px; font-family: var(--font-mono); }
+@media (max-width: 940px) {
+  .docs-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .docs-nav { position: static; max-height: none; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  .docs-nav-group { flex-direction: row; gap: 6px; margin-top: 0; }
+  .docs-nav-head { display: none; }
+  .docs-nav a { white-space: nowrap; border-left: 0; }
+  .docs-nav a[aria-current='page'] { border-left: 0; }
+  .docs-nav a.sub { display: none; }
+}
+
+/* ── search trigger in the docs sidebar ── */
+.docs-search {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 10px; margin-bottom: 4px;
+  border: 1px solid var(--line-2); border-radius: var(--r-m); background: var(--raised); color: var(--muted);
+  font-size: 13.5px; font-family: inherit; text-align: left; cursor: pointer;
+}
+.docs-search:hover { border-color: var(--accent-line); color: var(--ink); }
+.docs-search kbd { margin-left: auto; }
+
+/* ── parameter table ── */
+.param-name { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.param-req { color: var(--bad); margin-left: 3px; }
+.param-type { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.param-where {
+  display: inline-block; padding: 1px 6px; border-radius: var(--r-xs); background: var(--sunken); border: 1px solid var(--line);
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--muted);
+}
+
+/* ── an endpoint block ── */
+.endpoint { scroll-margin-top: 84px; }
+.endpoint-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.endpoint-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+@media (min-width: 1100px) { .endpoint-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.anchored { scroll-margin-top: 84px; }

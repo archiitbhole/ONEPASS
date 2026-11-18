@@ -1,0 +1,364 @@
+/*
+ * ONEPASS — tokens.
+ *
+ * The visual language is called INTAGLIO, after the printing process used for
+ * passports, banknotes and rail tickets: fine engraved line-work, paper you can
+ * feel, ink with real depth, and a few surfaces that catch the light. It is
+ * the language of documents people trust with their identity and their money,
+ * which is what this product asks to be trusted with.
+ *
+ * Three rules follow from it, and everything below is one of them:
+ *
+ *  1. THE ROOM AND THE OBJECTS ARE DIFFERENT MATERIALS. Pages are paper and
+ *     ink; passes, tickets, receipts and credentials are printed stock with
+ *     their own colour that does not change with the theme — a boarding pass
+ *     is the same card in a bright room and a dark one.
+ *  2. COLOUR MEANS SOMETHING. Jade is the brand and the action. Marigold is
+ *     value: points, savings, a good fare. Vermilion is danger, indigo is
+ *     information. Nothing is coloured for decoration.
+ *  3. LIGHT AND DARK ARE DESIGNED SEPARATELY. Light is paper in daylight —
+ *     warm, tactile, bright. Dark is night ink — deep green-black, with the
+ *     accents lit from within. Dark is not light inverted.
+ *
+ * Contrast: every text colour here clears WCAG AA (4.5:1) against every
+ * ground it is used on, in both themes. The pairs were measured when these
+ * values were chosen and scripts/a11y.mjs re-measures the rendered pages.
+ */
+
+/* ── fonts ────────────────────────────────────────────────── */
+:root {
+  /* Archivo, variable in width (62–125%) and weight. One family doing the
+     work of three: expanded for headlines and money, normal for interface
+     text, condensed for the labels printed on tickets. */
+  --font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* IBM Plex Sans for reading. Chosen partly for what comes next: Plex has a
+     Devanagari cut designed alongside the Latin, so Hindi arrives in the same
+     voice rather than in a system fallback. */
+  --font-text: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* The old names, kept so nothing that reads them breaks. */
+  --display: var(--font-display);
+  --sans: var(--font-text);
+  --mono: var(--font-mono);
+
+  /* Widths, as font-stretch percentages. */
+  --w-condensed: 82%;
+  --w-normal: 100%;
+  --w-wide: 112%;
+  --w-expanded: 122%;
+
+  /* ── type scale ── fluid from a 320px phone to a 1920px monitor. */
+  --fs-micro: 10.5px;
+  --fs-xs: 12px;
+  --fs-s: 13px;
+  --fs-base: clamp(15px, 0.2vw + 14.4px, 16px);
+  --fs-lead: clamp(16px, 0.45vw + 14.8px, 19px);
+  --fs-h4: 15.5px;
+  --fs-h3: clamp(17px, 0.35vw + 16px, 20px);
+  --fs-h2: clamp(21px, 1.1vw + 17px, 30px);
+  --fs-h1: clamp(28px, 2.6vw + 18px, 48px);
+  --fs-hero: clamp(38px, 5.2vw + 14px, 92px);
+  --fs-figure: clamp(26px, 1.8vw + 20px, 40px);
+  --fs-figure-lg: clamp(34px, 3.4vw + 20px, 64px);
+
+  /* ── space ── 4px base, named by rank. */
+  --s-0: 2px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 128px;
+  /* The page gutter: 16px on the smallest phones, up to 40px on a desktop. */
+  --gutter: clamp(16px, 3.2vw, 40px);
+
+  /* ── radius ── modest: a document has corners. */
+  --r-xs: 4px;
+  --r-s: 7px;
+  --r-m: 10px;
+  --r-l: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-full: 999px;
+  /* An ID-1 card (85.6 × 54 mm) has 3.18 mm corners — about 5.7% of its
+     height. Objects use the proportion rather than a fixed size, so a pass
+     keeps its shape at every scale. */
+  --r-object: clamp(14px, 1.6vw + 8px, 22px);
+
+  /* ── containers ── */
+  --w-page: 1180px;
+  --w-wide: 1360px;
+  --w-read: 720px;
+  --w-form: 460px;
+
+  /* ── z-index ── one ladder, so nothing has to guess. */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 40;
+  --z-nav: 50;
+  --z-overlay: 80;
+  --z-dialog: 90;
+  --z-toast: 100;
+  --z-skip: 120;
+
+  /* ── motion ──
+     Durations by intent. Anything over ~400ms reads as lag in an interface;
+     only an object that physically travels (a pass opening) is allowed more. */
+  --t-instant: 90ms;
+  --t-fast: 160ms;
+  --t-base: 240ms;
+  --t-slow: 380ms;
+  --t-object: 520ms;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  /* A spring, sampled. Used for things with mass — a pass, a ticket, the ink
+     bead in the tab bar — never for text. */
+  --ease-spring: linear(
+    0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%,
+    1.061 22.2%, 1.077 25%, 1.071 28.6%, 1.03 35.3%, 1.004 41.3%, 0.993 48.2%, 1 100%
+  );
+}
+
+/* ── colour: primitives ─────────────────────────────────── */
+:root {
+  /* Paper — warm, like uncoated stock. */
+  --paper-0: #fdfcf8;
+  --paper-1: #f8f6f0;
+  --paper-2: #f2efe7;
+  --paper-3: #e9e5da;
+  --paper-4: #dcd6c8;
+  --paper-5: #c8c0ae;
+
+  /* Night ink — green-black, never neutral grey. */
+  --night-0: #0a1210;
+  --night-1: #0d1614;
+  --night-2: #111b19;
+  --night-3: #16221f;
+  --night-4: #23312d;
+  --night-5: #33443f;
+
+  /* Jade — the brand. */
+  --jade-950: #04201a;
+  --jade-900: #073d2f;
+  --jade-800: #0a4d3a;
+  --jade-700: #005c41;
+  --jade-600: #00694a;
+  --jade-500: #0b8a62;
+  --jade-400: #2fae82;
+  --jade-300: #4cc99c;
+  --jade-200: #a7cdbb;
+  --jade-100: #ddeee5;
+
+  /* Marigold — value. */
+  --marigold-700: #8a5300;
+  --marigold-500: #d8961c;
+  --marigold-300: #edb95a;
+  --marigold-100: #f9eccf;
+
+  /* Vermilion — danger. Indigo — information. */
+  --vermilion-600: #a5301f;
+  --vermilion-300: #f08777;
+  --indigo-600: #34508f;
+  --indigo-300: #9eb3e6;
+
+  /* Object stock: the colours printed objects are made of. Theme-independent. */
+  --stock-jade-a: #06382b;
+  --stock-jade-b: #0b5a43;
+  --stock-jade-c: #128060;
+  --stock-ink: #0c1715;
+  --stock-paper: #fbf8ef;
+  --stock-marigold: #e2a336;
+  --stock-vermilion: #c2462f;
+  --stock-indigo: #2f4a8a;
+  --stock-line: rgba(255, 255, 255, 0.16);
+}
+
+/* ── colour: semantic, light ─────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --ground: var(--paper-2);
+  --surface: var(--paper-0);
+  --raised: var(--paper-1);
+  --sunken: var(--paper-3);
+  --ink: #0e1b18;
+  --ink-2: #33433f;
+  --muted: #57625e;
+  --line: var(--paper-4);
+  --line-2: var(--paper-5);
+  /* A rule is a line drawn deliberately — section dividers, table rules. */
+  --rule: color-mix(in srgb, var(--ink) 11%, transparent);
+
+  --accent: var(--jade-600);
+  --accent-strong: var(--jade-700);
+  --accent-ink: #ffffff;
+  --accent-soft: var(--jade-100);
+  --accent-line: var(--jade-200);
+
+  --value: var(--marigold-700);
+  --value-fill: var(--marigold-500);
+  --value-ink: #0e1b18;
+  --value-soft: var(--marigold-100);
+
+  --ok: #1d6b3e;
+  --ok-soft: #e0f0e4;
+  --warn: #7a5000;
+  --warn-soft: #f7ecd3;
+  --bad: var(--vermilion-600);
+  --bad-ink: #ffffff;
+  --bad-soft: #f8e3de;
+  --info: var(--indigo-600);
+  --info-soft: #e4e9f3;
+  --offline: #5d5a52;
+  --offline-soft: #ebe8e0;
+
+  /* Elevation: a tight contact shadow plus a wide ambient one, tinted warm so
+     it reads as a shadow on paper rather than a grey smudge. */
+  --e-0: 0 1px 0 rgba(58, 44, 12, 0.04);
+  --e-1: 0 1px 2px rgba(58, 44, 12, 0.06);
+  --e-2: 0 1px 2px rgba(58, 44, 12, 0.06), 0 8px 20px -12px rgba(58, 44, 12, 0.22);
+  --e-3: 0 1px 3px rgba(58, 44, 12, 0.07), 0 16px 34px -16px rgba(58, 44, 12, 0.28);
+  --e-4: 0 2px 6px rgba(58, 44, 12, 0.08), 0 28px 56px -22px rgba(58, 44, 12, 0.34);
+  --e-5: 0 4px 12px rgba(58, 44, 12, 0.1), 0 44px 90px -30px rgba(58, 44, 12, 0.42);
+  /* The top edge of card stock catches light. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  --ring: inset 0 0 0 1px var(--line);
+  --ring-accent: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+
+  /* Legacy names read by older screens. */
+  --shadow: var(--e-2);
+  --shadow-lg: var(--e-4);
+
+  /* Glass is vellum: frosted paper, not a window. */
+  --glass-bg: color-mix(in srgb, var(--paper-1) 74%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--paper-0) 90%, transparent);
+  --glass-line: color-mix(in srgb, var(--paper-5) 55%, transparent);
+  --glass-blur: 18px;
+  --scrim: color-mix(in srgb, #0e1b18 42%, transparent);
+
+  /* Ambient light in the room. Used sparingly and never behind dense data. */
+  --light-1: color-mix(in srgb, var(--jade-400) 16%, transparent);
+  --light-2: color-mix(in srgb, var(--marigold-300) 18%, transparent);
+  --ambient-strength: 1;
+  --grain-opacity: 0.035;
+  --engrave: color-mix(in srgb, var(--ink) 9%, transparent);
+}
+
+/* ── colour: semantic, dark ──────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --ground: var(--night-0);
+    --surface: var(--night-2);
+    --raised: var(--night-3);
+    --sunken: var(--night-1);
+    --ink: #e8efec;
+    --ink-2: #b5c3be;
+    --muted: #8d9e99;
+    --line: var(--night-4);
+    --line-2: var(--night-5);
+    --rule: color-mix(in srgb, var(--ink) 10%, transparent);
+    --accent: var(--jade-300);
+    --accent-strong: #6ddcb2;
+    --accent-ink: #03170f;
+    --accent-soft: #10302a;
+    --accent-line: #22594a;
+    --value: var(--marigold-300);
+    --value-fill: var(--marigold-300);
+    --value-ink: #1a1203;
+    --value-soft: #2a2112;
+    --ok: #5cc486;
+    --ok-soft: #11291c;
+    --warn: #e0ae4a;
+    --warn-soft: #2a2213;
+    --bad: var(--vermilion-300);
+    --bad-ink: #140605;
+    --bad-soft: #311a16;
+    --info: var(--indigo-300);
+    --info-soft: #182238;
+    --offline: #a39f94;
+    --offline-soft: #1f2220;
+    --e-0: 0 1px 0 rgba(0, 0, 0, 0.3);
+    --e-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --e-2: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 20px -12px rgba(0, 0, 0, 0.7);
+    --e-3: 0 1px 3px rgba(0, 0, 0, 0.55), 0 16px 34px -16px rgba(0, 0, 0, 0.75);
+    --e-4: 0 2px 6px rgba(0, 0, 0, 0.6), 0 28px 56px -22px rgba(0, 0, 0, 0.8);
+    --e-5: 0 4px 12px rgba(0, 0, 0, 0.65), 0 44px 90px -30px rgba(0, 0, 0, 0.88);
+    --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    --glass-bg: color-mix(in srgb, var(--night-2) 70%, transparent);
+    --glass-bg-strong: color-mix(in srgb, var(--night-2) 88%, transparent);
+    --glass-line: color-mix(in srgb, #ffffff 9%, transparent);
+    --scrim: color-mix(in srgb, #000 60%, transparent);
+    --light-1: color-mix(in srgb, var(--jade-400) 13%, transparent);
+    --light-2: color-mix(in srgb, var(--marigold-300) 7%, transparent);
+    --grain-opacity: 0.05;
+    --engrave: color-mix(in srgb, var(--jade-300) 9%, transparent);
+  }
+}
+
+/* The same values when a person has chosen dark explicitly. Kept literally in
+   step with the block above — a colour defined only inside a media query goes
+   missing the moment the query does not match. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ground: var(--night-0);
+  --surface: var(--night-2);
+  --raised: var(--night-3);
+  --sunken: var(--night-1);
+  --ink: #e8efec;
+  --ink-2: #b5c3be;
+  --muted: #8d9e99;
+  --line: var(--night-4);
+  --line-2: var(--night-5);
+  --rule: color-mix(in srgb, var(--ink) 10%, transparent);
+  --accent: var(--jade-300);
+  --accent-strong: #6ddcb2;
+  --accent-ink: #03170f;
+  --accent-soft: #10302a;
+  --accent-line: #22594a;
+  --value: var(--marigold-300);
+  --value-fill: var(--marigold-300);
+  --value-ink: #1a1203;
+  --value-soft: #2a2112;
+  --ok: #5cc486;
+  --ok-soft: #11291c;
+  --warn: #e0ae4a;
+  --warn-soft: #2a2213;
+  --bad: var(--vermilion-300);
+  --bad-ink: #140605;
+  --bad-soft: #311a16;
+  --info: var(--indigo-300);
+  --info-soft: #182238;
+  --offline: #a39f94;
+  --offline-soft: #1f2220;
+  --e-0: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --e-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --e-2: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 20px -12px rgba(0, 0, 0, 0.7);
+  --e-3: 0 1px 3px rgba(0, 0, 0, 0.55), 0 16px 34px -16px rgba(0, 0, 0, 0.75);
+  --e-4: 0 2px 6px rgba(0, 0, 0, 0.6), 0 28px 56px -22px rgba(0, 0, 0, 0.8);
+  --e-5: 0 4px 12px rgba(0, 0, 0, 0.65), 0 44px 90px -30px rgba(0, 0, 0, 0.88);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --glass-bg: color-mix(in srgb, var(--night-2) 70%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--night-2) 88%, transparent);
+  --glass-line: color-mix(in srgb, #ffffff 9%, transparent);
+  --scrim: color-mix(in srgb, #000 60%, transparent);
+  --light-1: color-mix(in srgb, var(--jade-400) 13%, transparent);
+  --light-2: color-mix(in srgb, var(--marigold-300) 7%, transparent);
+  --grain-opacity: 0.05;
+  --engrave: color-mix(in srgb, var(--jade-300) 9%, transparent);
+}
+
+/* ── registers ──────────────────────────────────────────────
+   One system, four temperatures, set by `data-surface` on a shell. */
+[data-surface='consumer'] { --density: 1; }
+[data-surface='partner'] { --density: 0.9; --ambient-strength: 0.5; }
+[data-surface='control'] { --density: 0.86; --ambient-strength: 0; }
+[data-surface='developer'] { --density: 0.94; --ambient-strength: 0.4; }
+[data-surface='public'] { --density: 1; }

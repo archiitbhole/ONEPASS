@@ -1,0 +1,852 @@
+<title>ONEPASS Duplication Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  /* ── Tokens. Inherited from the ONEPASS app's own design system
+       (apps/web/src/app/globals.css) rather than invented for this page:
+       jade on an ink-teal-biased neutral. ─────────────────────────── */
+  :root {
+    --ground: #edf1ef;
+    --surface: #ffffff;
+    --raised: #f5f8f7;
+    --sunken: #e4eae8;
+    --ink: #0b211e;
+    --muted: #6f8480;
+    --line: #d6dfdc;
+    --line-strong: #b9c8c4;
+
+    --accent: #007253;
+    --accent-soft: #e2f0eb;
+    --accent-line: #a9cfc3;
+
+    /* Semantic, separate from the accent. Maps to the status letters. */
+    --s-a: #1e7a4c;  --s-a-bg: #e1f1e7;
+    --s-b: #8f6100;  --s-b-bg: #f8efda;
+    --s-c: #a8352b;  --s-c-bg: #f8e6e3;
+    --s-d: #5b4396;  --s-d-bg: #ece7f6;
+    --s-e: #2b6f86;  --s-e-bg: #e0eef2;
+
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #08120f;
+      --surface: #101f1d;
+      --raised: #162926;
+      --sunken: #0c1917;
+      --ink: #dfeae6;
+      --muted: #829992;
+      --line: #223734;
+      --line-strong: #31504b;
+
+      --accent: #43bd99;
+      --accent-soft: #12312a;
+      --accent-line: #265448;
+
+      --s-a: #63c48d;  --s-a-bg: #122c1f;
+      --s-b: #dcaa46;  --s-b-bg: #2c2415;
+      --s-c: #ef8578;  --s-c-bg: #311a18;
+      --s-d: #b3a0e6;  --s-d-bg: #221c33;
+      --s-e: #7cbdd4;  --s-e-bg: #12262d;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #08120f;
+    --surface: #101f1d;
+    --raised: #162926;
+    --sunken: #0c1917;
+    --ink: #dfeae6;
+    --muted: #829992;
+    --line: #223734;
+    --line-strong: #31504b;
+
+    --accent: #43bd99;
+    --accent-soft: #12312a;
+    --accent-line: #265448;
+
+    --s-a: #63c48d;  --s-a-bg: #122c1f;
+    --s-b: #dcaa46;  --s-b-bg: #2c2415;
+    --s-c: #ef8578;  --s-c-bg: #311a18;
+    --s-d: #b3a0e6;  --s-d-bg: #221c33;
+    --s-e: #7cbdd4;  --s-e-bg: #12262d;
+  }
+
+  * , *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, p, ul, ol, dl, dd, figure, table { margin: 0; }
+  ul, ol { padding-left: 0; list-style: none; }
+  a { color: var(--accent); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 24px; }
+  .prose { max-width: 68ch; }
+
+  /* ── Masthead ─────────────────────────────────────────────── */
+  .masthead {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    padding-block: 44px 36px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(32px, 5.2vw, 50px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    margin-bottom: 16px;
+  }
+  .standfirst { font-size: clamp(16px, 2vw, 18.5px); line-height: 1.55; color: var(--muted); max-width: 62ch; }
+
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0 28px;
+    margin-top: 28px; padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+  .meta b { color: var(--ink); font-weight: 500; }
+
+  /* ── Section nav ──────────────────────────────────────────── */
+  .toc {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--ground) 92%, transparent);
+    backdrop-filter: saturate(1.5) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .toc ol { display: flex; gap: 2px; overflow-x: auto; padding-block: 8px; }
+  .toc a {
+    display: block; white-space: nowrap;
+    padding: 6px 12px; border-radius: 7px;
+    font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none;
+  }
+  .toc a:hover { background: var(--sunken); color: var(--ink); }
+
+  /* ── Sections ─────────────────────────────────────────────── */
+  section { padding-block: 52px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+
+  .sec-head { display: flex; gap: 16px; align-items: baseline; margin-bottom: 8px; }
+  .sec-num {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--accent); padding-top: 6px; flex: none;
+  }
+  h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(22px, 3.4vw, 31px); line-height: 1.15;
+    letter-spacing: -0.022em; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display); font-weight: 600; font-size: 18px;
+    letter-spacing: -0.012em; margin-top: 34px; margin-bottom: 12px;
+  }
+  section > .prose > p + p { margin-top: 14px; }
+  .sec-intro { color: var(--muted); margin-left: 28px; margin-bottom: 26px; max-width: 66ch; }
+
+  /* ── Inventory tiles ──────────────────────────────────────── */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .tile { background: var(--surface); padding: 18px 16px; }
+  .tile .n { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .tile .k { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .tile.zero .n { color: var(--s-c); }
+
+  /* ── Tables ───────────────────────────────────────────────── */
+  .scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--raised);
+    text-align: left; vertical-align: bottom;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+    padding: 11px 13px; border-bottom: 1px solid var(--line-strong); white-space: nowrap;
+  }
+  tbody td { padding: 13px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--raised); }
+  td.idx { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; width: 34px; }
+  td.feat { font-weight: 600; min-width: 165px; }
+  td.ev { min-width: 250px; }
+  code {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--sunken); color: var(--ink);
+    padding: 1.5px 5px; border-radius: 4px;
+    white-space: nowrap;
+  }
+  .ev code { display: inline-block; margin: 1px 0; }
+
+  /* Status letter carries a stripe as well as a colour, so it reads
+     without relying on hue alone. */
+  .st { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12.5px; font-weight: 600; }
+  .st i { font-style: normal; width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 600; flex: none; }
+  .st-A { color: var(--s-a); } .st-A i { background: var(--s-a-bg); }
+  .st-B { color: var(--s-b); } .st-B i { background: var(--s-b-bg); }
+  .st-C { color: var(--s-c); } .st-C i { background: var(--s-c-bg); }
+  .st-D { color: var(--s-d); } .st-D i { background: var(--s-d-bg); }
+  .st-E { color: var(--s-e); } .st-E i { background: var(--s-e-bg); }
+
+  .act { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.03em; white-space: nowrap; }
+  .act-keep   { color: var(--s-a); }
+  .act-extend { color: var(--s-e); }
+  .act-create { color: var(--s-c); }
+
+  /* ── Legend ───────────────────────────────────────────────── */
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 22px; margin-top: 22px; }
+  .legend div { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+  .legend .st { flex: none; padding-top: 1px; }
+  .legend span { color: var(--muted); }
+
+  /* ── Callouts ─────────────────────────────────────────────── */
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 15px 18px; border-radius: 0 8px 8px 0;
+    margin-top: 24px; font-size: 14px; line-height: 1.55;
+  }
+  .note b { font-weight: 600; }
+  .note.warn { border-left-color: var(--s-b); background: var(--s-b-bg); }
+
+  /* ── Canonical list ───────────────────────────────────────── */
+  .canon { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .canon > li { display: grid; grid-template-columns: 190px 1fr; gap: 20px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .canon > li:last-child { border-bottom: 0; }
+  .canon dt { font-weight: 600; font-size: 13.5px; }
+  .canon .src { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+  @media (max-width: 620px) { .canon > li { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* ── Avoided-duplicate list ───────────────────────────────── */
+  .avoided { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .avoided li { background: var(--surface); padding: 15px 17px; font-size: 13.5px; }
+  .avoided b { display: block; font-weight: 600; margin-bottom: 4px; }
+  .avoided span { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+  footer { padding-block: 34px 60px; color: var(--muted); font-size: 13px; }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">Phase 1–4 · pre-implementation gate</p>
+    <h1>What ONEPASS already has</h1>
+    <p class="standfirst">
+      An audit of the working codebase against 45 requested capabilities, carried out before any
+      of them were built. The finding that matters: two thirds of what was asked for is a
+      composition of systems that already exist, and building them fresh would have given ONEPASS
+      two wallets, two assistants and two privacy systems.
+    </p>
+    <div class="meta">
+      <span><b>Audited</b> apps/web @ HEAD</span>
+      <span><b>Date</b> 5 September</span>
+      <span><b>Scope</b> 45 features · 20 subsystems</span>
+      <span><b>Method</b> full repository + live schema read</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <div class="wrap">
+    <ol>
+      <li><a href="#inventory">Inventory</a></li>
+      <li><a href="#legend">How to read it</a></li>
+      <li><a href="#matrix-b">Matrix · 20 new features</a></li>
+      <li><a href="#matrix-a">Matrix · 25 commerce features</a></li>
+      <li><a href="#gate">Approval gate</a></li>
+      <li><a href="#canon">Canonical sources</a></li>
+      <li><a href="#avoided">Duplicates avoided</a></li>
+      <li><a href="#honest">What stays simulated</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<section id="inventory">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>What is actually in the repository</h2></div>
+    <p class="sec-intro">
+      Counted from the working tree and the live Postgres instance, not from memory or a plan
+      document. The last tile is the one that shapes everything below.
+    </p>
+
+    <ul class="tiles">
+      <li class="tile"><div class="n">67</div><div class="k">database tables</div></li>
+      <li class="tile"><div class="n">43</div><div class="k">API routes</div></li>
+      <li class="tile"><div class="n">22</div><div class="k">domain services</div></li>
+      <li class="tile"><div class="n">55</div><div class="k">RBAC permissions</div></li>
+      <li class="tile"><div class="n">59</div><div class="k">passing tests</div></li>
+      <li class="tile zero"><div class="n">0</div><div class="k">frontend pages</div></li>
+    </ul>
+
+    <div class="note">
+      <b>The shape of the problem.</b> ONEPASS has a substantial, tested backend and no user
+      interface at all — one <code>layout.tsx</code> and a <code>middleware.ts</code>, nothing else.
+      So most requested features are not missing capabilities; they are missing <em>screens over
+      capabilities that already work</em>. That distinction decides almost every row in the
+      matrices below.
+    </div>
+
+    <h3>Subsystems found, with their evidence</h3>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Subsystem</th><th>Where it lives</th><th>Backing tables</th><th>State</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feat">Authentication</td>
+            <td class="ev"><code>lib/auth/flows.ts</code> <code>lib/auth/session.ts</code> <code>lib/auth/otp.ts</code> <code>lib/auth/password.ts</code> · 8 routes under <code>/api/auth</code></td>
+            <td class="ev"><code>users</code> <code>sessions</code> <code>auth_events</code> <code>verification_requests</code> <code>devices</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Authorization / RBAC</td>
+            <td class="ev"><code>lib/authz/authorize.ts</code> <code>lib/authz/permissions.ts</code> — permissions resolved per membership, not globally</td>
+            <td class="ev"><code>roles</code> <code>permissions</code> <code>role_permissions</code> <code>user_roles</code> <code>organization_members</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Consent &amp; privacy</td>
+            <td class="ev"><code>/api/me/consents</code> <code>/api/me/consents/[id]</code> <code>/api/me/connections</code> <code>/api/me/connections/[id]</code></td>
+            <td class="ev"><code>consent_definitions</code> <code>consent_versions</code> <code>consent_grants</code> <code>partner_connections</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Pass / QR verification</td>
+            <td class="ev"><code>lib/pass/service.ts</code> · <code>packages/pass/src/totp.ts</code> · <code>packages/pass/src/qr.js</code> (own ISO 18004 encoder)</td>
+            <td class="ev"><code>passes</code> <code>pass_presentations</code> — replay blocked by a unique index on <code>(pass_id, org_id, counter)</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Credential trust engine</td>
+            <td class="ev"><code>lib/credentials/service.ts</code> · <code>/api/v1/verify</code> <code>/api/v1/credentials/[ref]</code> — Ed25519 over a SHA-256 of canonical claims</td>
+            <td class="ev"><code>credentials</code> <code>credential_types</code> <code>credential_revocations</code> <code>verifications</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Payments</td>
+            <td class="ev"><code>lib/payments/provider.ts</code> — Razorpay adapter written, sandbox adapter active; webhook signature verified with a constant-time compare</td>
+            <td class="ev"><code>transactions</code> <code>payment_methods</code> <code>idempotency_keys</code></td>
+            <td><span class="st st-B"><i>B</i>Needs keys</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Security events</td>
+            <td class="ev"><code>lib/audit.ts:90</code> <code>recordSecurityEvent()</code> · <code>/api/me/security</code> <code>/api/admin/security</code></td>
+            <td class="ev"><code>security_events</code> (kind, severity, metadata, ip_hash) <code>audit_logs</code></td>
+            <td><span class="st st-B"><i>B</i>Records, doesn't detect</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Notifications</td>
+            <td class="ev"><code>lib/audit.ts</code> <code>notify()</code> · <code>lib/delivery.ts</code> (email + SMS adapters) · <code>/api/me/notifications</code></td>
+            <td class="ev"><code>notifications</code> <code>notification_preferences</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Real-time</td>
+            <td class="ev"><code>lib/realtime.ts</code> — transactional outbox → Redis pub/sub → SSE at <code>/api/events/stream</code></td>
+            <td class="ev"><code>outbox_events</code></td>
+            <td><span class="st st-A"><i>A</i>Complete</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Developer platform</td>
+            <td class="ev"><code>/api/v1/verify</code> accepts <code>Authorization: Bearer</code>; keys stored as SHA-256</td>
+            <td class="ev"><code>api_keys</code> <code>webhooks</code> <code>webhook_deliveries</code> <code>api_usage</code></td>
+            <td><span class="st st-B"><i>B</i>No console</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Commerce layer</td>
+            <td class="ev"><code>lib/commerce/inventory.ts</code> (row-locked holds) <code>lib/commerce/rewards.ts</code> (append-only ledger)</td>
+            <td class="ev"><code>venues</code> <code>inventory_slots</code> <code>offers</code> <code>bookings</code> <code>tickets</code> <code>receipts</code> <code>reward_ledger</code> +25 more</td>
+            <td><span class="st st-B"><i>B</i>Schema + core done</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Localization</td>
+            <td class="ev"><code>/api/me/profile</code> validates BCP-47 tags; no message catalogue anywhere</td>
+            <td class="ev"><code>user_profiles.locale</code> (default <code>en-IN</code>)</td>
+            <td><span class="st st-B"><i>B</i>Storage only</span></td>
+          </tr>
+          <tr>
+            <td class="feat">Frontend</td>
+            <td class="ev"><code>app/layout.tsx</code> <code>app/globals.css</code> <code>middleware.ts</code> (nonce CSP, HSTS)</td>
+            <td class="ev">—</td>
+            <td><span class="st st-C"><i>C</i>Not started</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="legend">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>How to read the matrices</h2></div>
+    <p class="sec-intro">
+      Every row cites a file, a route or a table. Where a row says something exists, it names
+      where — an audit that says “already exists” without a path is an assertion, not a finding.
+    </p>
+    <div class="legend">
+      <div><span class="st st-A"><i>A</i></span><span><b>Fully implemented.</b> Works today. No action beyond exposing it in the UI.</span></div>
+      <div><span class="st st-B"><i>B</i></span><span><b>Partially implemented.</b> Some of the capability is real; the rest is missing. Complete it in place.</span></div>
+      <div><span class="st st-C"><i>C</i></span><span><b>Not implemented.</b> Genuinely absent after a full search.</span></div>
+      <div><span class="st st-D"><i>D</i></span><span><b>Exists under a different name.</b> The request and the code use different vocabulary for the same thing.</span></div>
+      <div><span class="st st-E"><i>E</i></span><span><b>Composable from existing systems.</b> No new engine needed — assemble what is there.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="matrix-b">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Matrix · the 20 new capabilities</h2></div>
+    <p class="sec-intro">
+      Nine rows compose existing systems, six complete something half-built, five are genuinely
+      new. Nothing here is rated A: none of the twenty is finished, because none of them has a
+      screen.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th class="idx">#</th>
+            <th>Requested feature</th>
+            <th>Existing equivalent</th>
+            <th>Evidence — file · route · table</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="idx">1</td>
+            <td class="feat">One-tap privacy lock</td>
+            <td>Consent &amp; connection management</td>
+            <td class="ev"><code>/api/me/consents/[id]</code> revokes a grant · <code>consent_grants.state</code> · <code>consent_definitions.sensitive</code> marks optional vs required · <code>partner_connections.state</code></td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">2</td>
+            <td class="feat">Suspicious activity shield</td>
+            <td>Security event recording</td>
+            <td class="ev"><code>lib/audit.ts:90</code> writes <code>security_events</code> with severity + metadata · <code>/api/me/security</code> reads them · <b>no detector exists</b></td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">3</td>
+            <td class="feat">Offline ONEPASS</td>
+            <td>Rotating TOTP pass</td>
+            <td class="ev"><code>packages/pass/src/totp.ts</code> — RFC 6238, verifiable without a network by design · <code>passes.secret_cipher</code> · <code>pass_presentations.counter</code></td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">4</td>
+            <td class="feat">Device recovery</td>
+            <td>Device registry + account recovery</td>
+            <td class="ev"><code>devices</code> (handle, platform, trusted, revoked_at) · <code>sessions.generation</code> for global revocation · <code>flows.ts</code> <code>startPasswordReset</code> / <code>completePasswordReset</code> · <code>/api/me/sessions/revoke-all</code></td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">5</td>
+            <td class="feat">One-tap checkout</td>
+            <td>Transactions + payment methods + bookings</td>
+            <td class="ev"><code>lib/payments/provider.ts</code> · <code>transactions</code> with <code>idempotency_key</code> · <code>lib/commerce/inventory.ts</code> holds capacity under a row lock</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">6</td>
+            <td class="feat">Split commerce</td>
+            <td>Payment rail only</td>
+            <td class="ev">Payments exist; nothing splits an amount across payers. New: <code>split_requests</code> <code>split_shares</code>, each share settling through the <em>existing</em> transaction path</td>
+            <td><span class="st st-C"><i>C</i>Missing</span></td>
+            <td class="act act-create">CREATE NEW</td>
+          </tr>
+          <tr>
+            <td class="idx">7</td>
+            <td class="feat">Smart group gifting</td>
+            <td>Bookings + notifications</td>
+            <td class="ev">No gift concept. New: <code>gifts</code> holding a paid-but-unclaimed booking; delivery reuses <code>notify()</code>, redemption reuses the booking engine</td>
+            <td><span class="st st-C"><i>C</i>Missing</span></td>
+            <td class="act act-create">CREATE NEW</td>
+          </tr>
+          <tr>
+            <td class="idx">8</td>
+            <td class="feat">Group booking room</td>
+            <td>Itineraries</td>
+            <td class="ev"><code>itineraries</code> + <code>itinerary_items</code> already model a shared plan with positions, costs and linked bookings. Needs collaborators and votes, not a second planner</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">9</td>
+            <td class="feat">Price protection</td>
+            <td>Offers + savings ledger</td>
+            <td class="ev"><code>bookings.list_price_minor</code> stores the anchor price at purchase · <code>offers</code> carries later prices · <code>savings_events</code> already records attributed savings</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">10</td>
+            <td class="feat">Smart check-in zones</td>
+            <td>Venues + tickets + pass presentation</td>
+            <td class="ev"><code>venues.latitude/longitude</code> · <code>tickets.valid_from/valid_until</code> · <code>pass_presentations</code> records an arrival. A context endpoint composes these</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">11</td>
+            <td class="feat">Indoor venue navigation</td>
+            <td>—</td>
+            <td class="ev">No spatial model. New: <code>venue_maps</code> + <code>venue_nodes</code>, hung off the existing <code>venues</code> row. Sample maps, labelled as such</td>
+            <td><span class="st st-C"><i>C</i>Missing</span></td>
+            <td class="act act-create">CREATE NEW</td>
+          </tr>
+          <tr>
+            <td class="idx">12</td>
+            <td class="feat">Smart parking</td>
+            <td>Inventory + booking engine</td>
+            <td class="ev">A parking bay <em>is</em> capacity for a window. Adds <code>venue_kind='PARKING'</code> and <code>capacity_unit='BAY'</code> to existing enums; <code>inventory_slots</code> and <code>bookings</code> carry it unchanged</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">13</td>
+            <td class="feat">Parking memory</td>
+            <td>—</td>
+            <td class="ev">Nothing records where a vehicle was left. New: one small <code>parked_vehicles</code> table — distinct lifecycle from a booking, so not a column on it</td>
+            <td><span class="st st-C"><i>C</i>Missing</span></td>
+            <td class="act act-create">CREATE NEW</td>
+          </tr>
+          <tr>
+            <td class="idx">14</td>
+            <td class="feat">Venue companion mode</td>
+            <td>Tickets + bookings + venues</td>
+            <td class="ev">Every element already exists; what is missing is a screen that reads them together for the venue you are standing in. <b>Zero new tables.</b></td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">15</td>
+            <td class="feat">Digital concierge network</td>
+            <td>The planner assistant</td>
+            <td class="ev"><code>itineraries.generator</code> already names which engine produced a plan. The concierge is the same assistant answering venue-scoped questions — <b>one assistant, not two</b></td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">16</td>
+            <td class="feat">Language per interaction</td>
+            <td>Locale on the profile</td>
+            <td class="ev"><code>user_profiles.locale</code> exists and <code>/api/me/profile:18</code> validates the tag — but there is no catalogue to translate <em>with</em>. Add messages + a per-request override</td>
+            <td><span class="st st-B"><i>B</i>Partial</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">17</td>
+            <td class="feat">Voice ONEPASS</td>
+            <td>The same assistant</td>
+            <td class="ev">Voice is an input method, not a product. Web Speech API in the browser feeds the assistant already being built. <b>No second assistant, no new service.</b></td>
+            <td><span class="st st-C"><i>C</i>Missing</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">18</td>
+            <td class="feat">Accessibility passport</td>
+            <td>Profile + consent</td>
+            <td class="ev"><code>user_profiles</code> for storage, <code>consent_definitions.sensitive</code> for the sharing gate. Accessibility needs are health-adjacent, so they go behind a consent definition — not a profile field partners can read</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">19</td>
+            <td class="feat">Student ONEPASS</td>
+            <td>Credentials + offer audience</td>
+            <td class="ev">A student status is a credential: <code>credential_types</code> + <code>credentials</code> + <code>/api/v1/verify</code> already issue and prove it. <code>offers.audience</code> gates the discount. <b>No separate identity or wallet.</b></td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+          <tr>
+            <td class="idx">20</td>
+            <td class="feat">Campus mode</td>
+            <td>Organizations as tenants</td>
+            <td class="ev">A university is an organization with members, roles, venues and credentials — all of which exist. Adds <code>organization_kind='CAMPUS'</code>; the membership and consent machinery is unchanged</td>
+            <td><span class="st st-E"><i>E</i>Composable</span></td>
+            <td class="act act-extend">EXTEND EXISTING</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <b>One finding that changes a design.</b> The requested “impossible travel” detection was going
+      to be built from IP addresses — but ONEPASS deliberately stores only <code>ip_hash</code>, a
+      one-way peppered hash, so an IP here <em>cannot</em> be geolocated. That is a privacy property
+      worth keeping. The detector instead computes travel speed between
+      <code>pass_presentations</code> joined to <code>venues.latitude/longitude</code> — real scan
+      locations, which is both more accurate and requires no third-party IP intelligence vendor.
+    </div>
+
+    <div class="note">
+      <b>Built as specified, with one schema change the design forced.</b>
+      <code>src/lib/security/detect.ts</code> now implements all four detectors, writing into the
+      existing <code>security_events</code> table through <code>recordSecurityEvent</code> — no
+      second security store, as this audit required. Implementing it exposed a gap: a presentation
+      recorded only the organization, so a chain with branches in two cities could not be told apart
+      from a re-scan at one counter. <code>pass_presentations.venue_id</code> was added (nullable —
+      an organization-wide API key legitimately has no venue), and where a terminal names no venue
+      the detector uses the <em>slowest</em> candidate pairing, so ambiguous evidence cannot
+      manufacture a finding. 22 integration tests, most of them negative cases.
+      <br><br>
+      Two functions from the first draft were deleted rather than shipped: <code>lockAccount</code>
+      and <code>unlockAccount</code> duplicated <code>PATCH /api/admin/users/[id]</code>, which
+      already suspends, revokes every session and audits the reason. That is exactly the duplication
+      this audit exists to prevent, and it was caught by re-reading the audit before finishing.
+    </div>
+  </div>
+</section>
+
+<section id="matrix-a">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Matrix · the 25 commerce capabilities</h2></div>
+    <p class="sec-intro">
+      The preceding brief. Condensed to the determination and its evidence, since the schema work
+      it authorised is already applied — 32 tables added, taking the database from 35 to 67.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th class="idx">#</th><th>Requested feature</th><th>Determination &amp; evidence</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="idx">24</td><td class="feat">Universal digital identity</td><td class="ev">Consent-scoped disclosure already built: <code>consent_grants</code> per partner, <code>publicView()</code> in <code>credentials/service.ts</code> builds responses field by field and never spreads a row</td><td><span class="st st-A"><i>A</i>Done</span></td><td class="act act-keep">KEEP EXISTING</td></tr>
+          <tr><td class="idx">20</td><td class="feat">Universal support</td><td class="ev"><code>support_tickets</code> with status, assignee and resolution exists; <code>/api/admin</code> lacks the screen</td><td><span class="st st-B"><i>B</i>Partial</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">17</td><td class="feat">Partner API marketplace</td><td class="ev"><code>api_keys</code> hashed with SHA-256, <code>webhooks</code>, <code>webhook_deliveries</code>; metering added as <code>api_usage</code> (daily buckets)</td><td><span class="st st-B"><i>B</i>Partial</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">18</td><td class="feat">Third-party ecosystem</td><td class="ev">Same substrate as #17 — a developer console over it, not a parallel key system</td><td><span class="st st-D"><i>D</i>Same system</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">2</td><td class="feat">Live deals marketplace</td><td class="ev">Created: <code>inventory_slots</code> (capacity / held / sold) + <code>offers</code> with <code>kind='LIVE_DEAL'</code>. One offers table serves all five discount kinds</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">3</td><td class="feat">Universal digital receipts</td><td class="ev">Created: <code>receipts</code> + <code>receipt_lines</code>. Line granularity is required by #4 and #5 downstream</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">4</td><td class="feat">Warranty vault</td><td class="ev">Created: <code>warranties</code>, derived from a receipt line at issue, then indexed by expiry for the “lapsing soon” query</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">5</td><td class="feat">Universal returns</td><td class="ev">Created: <code>return_requests</code> with a state machine and a window denormalised at issue, so a later policy change cannot close an open window</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">6</td><td class="feat">Cross-brand rewards</td><td class="ev">Created as a ledger: <code>reward_ledger</code> is the truth, <code>reward_accounts.balance</code> a lockable cache. <code>settlement_paise_per_point</code> is what makes it a network rather than a giveaway</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">7</td><td class="feat">City pass</td><td class="ev">Created: <code>cities</code> <code>city_passes</code> <code>city_pass_entitlements</code> <code>city_pass_holdings</code> <code>city_pass_uses</code>. Allowance enforced by a unique index, not a counter</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">8</td><td class="feat">Travel mode</td><td class="ev">A trip is a day plan with more days — same <code>itineraries</code> table, <code>kind='TRIP'</code>. No second planner</td><td><span class="st st-E"><i>E</i>Composable</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">1 · 19</td><td class="feat">Commerce AI &amp; offer agent</td><td class="ev">One engine, two entry points. Writes <code>itineraries</code> with <code>generator</code> recorded. Rule-based over live rows — no model is connected and the field does not claim one</td><td><span class="st st-C"><i>C</i>In build</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">9</td><td class="feat">Merchant OS</td><td class="ev">Reads existing <code>transactions</code>, <code>bookings</code>, <code>organization_members</code>, <code>api_keys</code>. A console, not a second backend</td><td><span class="st st-E"><i>E</i>Composable</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">10 · 11</td><td class="feat">Growth advisor &amp; demand</td><td class="ev">Created: <code>merchant_insights</code> and <code>demand_forecasts</code>, each storing <code>method</code>, <code>evidence</code> and <code>sample_size</code> so any number on the dashboard can be traced to its inputs</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">12</td><td class="feat">Savings engine</td><td class="ev">Created: <code>savings_events</code>, written in the same transaction as the booking that caused it. The headline figure is a sum of real rows</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">13</td><td class="feat">Shopping memory</td><td class="ev">This is the receipts list with a different heading — <code>receipts</code> + <code>receipt_lines</code> + <code>warranties</code> + <code>return_requests</code> joined. <b>No new storage.</b></td><td><span class="st st-D"><i>D</i>Same data</span></td><td class="act act-keep">NO ACTION REQUIRED</td></tr>
+          <tr><td class="idx">14</td><td class="feat">Smart neighbourhood</td><td class="ev">A filtered query over <code>venues</code> and <code>offers</code> by city and tags. A screen, not a subsystem</td><td><span class="st st-E"><i>E</i>Composable</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">15</td><td class="feat">City explorer</td><td class="ev">Created: <code>quests</code> + <code>quest_progress</code>, with distinct venue ids per step so a single venue cannot complete a quest</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">16</td><td class="feat">Corporate ONEPASS</td><td class="ev">A sponsoring company is an <code>organization</code> with <code>kind='CORPORATE'</code> — the membership, role and consent machinery is reused wholesale. Only <code>corporate_benefits</code> and <code>benefit_allocations</code> are new</td><td><span class="st st-E"><i>E</i>Composable</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+          <tr><td class="idx">21</td><td class="feat">Family ONEPASS</td><td class="ev">Created: <code>households</code> + <code>household_members</code> with spend caps. Identity stays one <code>users</code> row per person</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">22</td><td class="feat">Merchant acquisition</td><td class="ev">Created: <code>campaigns</code> + <code>campaign_events</code>. The audience field holds aggregate selectors only — never user ids — and reach is suppressed below a k-anonymity floor</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">23</td><td class="feat">Universal ticket wallet</td><td class="ev">Created: <code>tickets</code>. Note <code>ticket_status</code> already existed as an enum with no table behind it — a stub the audit caught</td><td><span class="st st-C"><i>C</i>Built</span></td><td class="act act-create">CREATE NEW</td></tr>
+          <tr><td class="idx">25</td><td class="feat">Ecosystem analytics graph</td><td class="ev">Aggregate queries over <code>bookings</code> and <code>venues</code>. No per-person graph is stored, and none should be</td><td><span class="st st-E"><i>E</i>Composable</span></td><td class="act act-extend">EXTEND EXISTING</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="gate">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>The approval gate, answered</h2></div>
+    <p class="sec-intro">The seven questions the brief required before implementation resumes.</p>
+
+    <div class="prose">
+      <h3>1 · What already exists</h3>
+      <p>
+        Identity, authentication, per-tenant authorization, consent, the pass and its verification,
+        the credential trust engine, notifications, real-time delivery, the audit and security
+        trail, and the payment rail. Fifty-nine integration tests cover the parts where a mistake
+        is a breach rather than a bug — tenant isolation, privilege escalation, credential
+        tampering.
+      </p>
+
+      <h3>2 · What is partially implemented</h3>
+      <p>
+        Security <em>records</em> events but does not <em>detect</em> them. Payments are wired to a
+        real Razorpay adapter but running on the sandbox until keys arrive. The developer platform
+        stores and authenticates keys but has no console. Locale is stored but nothing translates.
+        The commerce layer has its schema and its two riskiest services and little else.
+      </p>
+
+      <h3>3 · What is missing</h3>
+      <p>
+        The entire user interface, and five genuinely new capabilities: splitting a bill, gifting a
+        booking, indoor maps, parking memory, and the anomaly detector.
+      </p>
+
+      <h3>4 · What gets extended rather than built</h3>
+      <p>
+        Fifteen of the twenty. Parking becomes a venue kind and a capacity unit. A campus becomes an
+        organization kind. A student becomes a credential. The concierge and the voice interface
+        both become entry points to the one assistant. Group booking becomes collaborators on the
+        itinerary that already exists.
+      </p>
+
+      <h3>5 · What genuinely needs creating</h3>
+      <p>
+        Seven tables: <code>split_requests</code>, <code>split_shares</code>, <code>gifts</code>,
+        <code>venue_maps</code>, <code>venue_nodes</code>, <code>parked_vehicles</code>, and
+        <code>itinerary_collaborators</code>. Against 45 requested features, that is the measure of
+        how much was already there.
+      </p>
+
+      <h3>6 · Duplicates avoided</h3>
+      <p>Twelve, listed in section 07 below.</p>
+
+      <h3>7 · Canonical sources of truth</h3>
+      <p>Fixed in section 06. Every new feature composes these; none may shadow one.</p>
+    </div>
+  </div>
+</section>
+
+<section id="canon">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Canonical sources of truth</h2></div>
+    <p class="sec-intro">
+      One system per capability, named. A pull request that introduces a second store for anything
+      on this list is wrong by construction, whatever it is called.
+    </p>
+
+    <ol class="canon">
+      <li><dt>Identity</dt><div class="src">users · user_profiles · devices — one row per person, forever</div></li>
+      <li><dt>Authentication</dt><div class="src">sessions (opaque tokens, SHA-256 at rest) · lib/auth/*</div></li>
+      <li><dt>Authorization</dt><div class="src">lib/authz/authorize.ts — permissions resolved per membership</div></li>
+      <li><dt>Consent &amp; privacy</dt><div class="src">consent_grants · partner_connections</div></li>
+      <li><dt>Pass &amp; verification</dt><div class="src">passes · pass_presentations · packages/pass</div></li>
+      <li><dt>Credentials</dt><div class="src">credentials · credential_types · verifications</div></li>
+      <li><dt>Money</dt><div class="src">transactions · payment_methods · lib/payments/provider.ts</div></li>
+      <li><dt>Capacity</dt><div class="src">inventory_slots — the only thing that may be sold</div></li>
+      <li><dt>Booking</dt><div class="src">bookings — every reservation, of anything, including parking</div></li>
+      <li><dt>Rewards</dt><div class="src">reward_ledger — append-only; the balance is a cache of it</div></li>
+      <li><dt>Assistant</dt><div class="src">the planner engine · itineraries — plans, concierge answers and voice all land here</div></li>
+      <li><dt>Notifications</dt><div class="src">notifications · lib/delivery.ts</div></li>
+      <li><dt>Security &amp; audit</dt><div class="src">security_events · audit_logs · lib/audit.ts</div></li>
+      <li><dt>Analytics</dt><div class="src">aggregate reads only — no per-person profile table</div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="avoided">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Duplicates the audit prevented</h2></div>
+    <p class="sec-intro">
+      Each of these was implied by a feature request read literally, and each would have created a
+      competing source of truth.
+    </p>
+
+    <ul class="avoided">
+      <li><b>A second privacy system</b><span>Privacy lock became a master switch over <code>consent_grants</code>, not a parallel permission store.</span></li>
+      <li><b>A second security store</b><span>The shield writes to <code>security_events</code> — the same table the admin console already reads.</span></li>
+      <li><b>A second pass format</b><span>Offline mode uses the TOTP pass that already verifies without a network. No new QR type.</span></li>
+      <li><b>A second recovery path</b><span>Device recovery extends the existing reset flow and session-generation revocation.</span></li>
+      <li><b>A second checkout</b><span>One-tap checkout is one cart producing many bookings and one transaction on the existing rail.</span></li>
+      <li><b>A second booking engine</b><span>Parking reserves an <code>inventory_slot</code> like every other bookable thing.</span></li>
+      <li><b>A second itinerary system</b><span>Group booking rooms are collaborators on <code>itineraries</code>.</span></li>
+      <li><b>A second AI assistant</b><span>Concierge and voice are entry points to the one planner. Twice avoided.</span></li>
+      <li><b>A second locale store</b><span>Per-interaction language reads <code>user_profiles.locale</code> with a request override.</span></li>
+      <li><b>A second wallet for students</b><span>Student status is a credential; the wallet and identity stay one.</span></li>
+      <li><b>A second tenant model for campus</b><span>A university is an organization. Members, roles and consent are unchanged.</span></li>
+      <li><b>A second location system</b><span>Check-in zones read <code>venues.latitude/longitude</code>, already on every venue.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="honest">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">08</span><h2>What will remain simulated, and why</h2></div>
+    <p class="sec-intro">
+      Recorded here so no screen has to claim otherwise. Each line names the credential or vendor
+      that would make it real.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Capability</th><th>What is real</th><th>What is simulated</th><th>To make it real</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="feat">Payments</td>
+            <td>Order creation, webhook signature verification, idempotency, refunds — all written against Razorpay's API</td>
+            <td>The sandbox adapter settles instantly and moves no money</td>
+            <td class="ev"><code>RAZORPAY_KEY_ID</code> <code>RAZORPAY_KEY_SECRET</code> <code>RAZORPAY_WEBHOOK_SECRET</code></td>
+          </tr>
+          <tr>
+            <td class="feat">Assistant &amp; insights</td>
+            <td>Constraint solving over live inventory and offers; variances computed from real transaction rows</td>
+            <td>Nothing — but there is no language model behind it, so it is called a planner, not an AI</td>
+            <td class="ev">A model key, if conversational phrasing is wanted later</td>
+          </tr>
+          <tr>
+            <td class="feat">Demand forecasts</td>
+            <td>Trailing weekday means over seeded booking history, with sample size and confidence stored</td>
+            <td>The history is seeded, so early forecasts describe seeded demand</td>
+            <td class="ev">Live booking volume — the method needs no change</td>
+          </tr>
+          <tr>
+            <td class="feat">Email &amp; SMS</td>
+            <td>Provider adapters written for Resend and MSG91</td>
+            <td>Console transport prints codes to the server log; production refuses to start with it</td>
+            <td class="ev"><code>RESEND_API_KEY</code> <code>MSG91_AUTH_KEY</code></td>
+          </tr>
+          <tr>
+            <td class="feat">Indoor navigation</td>
+            <td>The graph and routing between nodes</td>
+            <td>Floor plans are hand-authored sample maps for the seeded venues</td>
+            <td class="ev">Venue-supplied floor plans, or a positioning vendor</td>
+          </tr>
+          <tr>
+            <td class="feat">NFC</td>
+            <td>Nothing yet — the pass format supports it</td>
+            <td>Not implemented; QR is the shipping mechanism</td>
+            <td class="ev">Native app builds; Web NFC is Android-Chrome only</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <b>Standing rule for every screen built from here.</b> No interface may claim a payment
+      occurred, a document is legally authentic, a model produced an answer, or a compliance
+      standard is met, unless the thing behind it is real and verified. Where a figure is an
+      estimate, the screen says so and shows the sample it came from.
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    ONEPASS · duplication audit — performed against the working tree and the live schema
+    before implementation resumed.
+  </div>
+</footer>
